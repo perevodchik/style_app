@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+const messageItemStyle = TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400);
 const titleStyle = TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w700);
 const titleMediumStyle = TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w700);
 const titleSmallStyle = TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600);

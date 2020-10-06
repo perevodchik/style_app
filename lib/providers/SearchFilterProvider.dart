@@ -1,16 +1,17 @@
 import 'package:flutter/cupertino.dart';
+import 'package:style_app/model/City.dart';
 import 'package:style_app/model/Service.dart';
 
 class SearchFilterProvider extends ChangeNotifier {
-  List<int> _cities = [];
+  List<City> _cities = [];
   List<Service> _services = [];
   bool _showWithHighRate = false;
 
-  List<int> get cities => _cities;
+  List<City> get cities => _cities;
   List<Service> get services => _services;
   bool get isShowWithHighRate => _showWithHighRate;
 
-  set cities(List<int> val) {
+  set cities(List<City> val) {
     _cities.clear();
     _cities.addAll(val);
     notifyListeners();
@@ -22,7 +23,7 @@ class SearchFilterProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleCity(int val) {
+  void toggleCity(City val) {
     if(_cities.contains(val))
       _cities.remove(val);
     else

@@ -12,10 +12,9 @@ import 'package:style_app/service/CommentsRepository.dart';
 import 'package:style_app/service/OrdersService.dart';
 import 'package:style_app/service/SentenceRepository.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
-import 'package:style_app/providers/RecordProvider.dart';
-import 'package:style_app/service/MastersRepository.dart';
+import 'package:style_app/ui/CommentBlock.dart';
 import 'package:style_app/ui/ImagePage.dart';
-import 'package:style_app/ui/MasterProfileScreen.dart';
+import 'package:style_app/ui/ProfileScreen.dart';
 import 'package:style_app/ui/SentenceCommentsScreen.dart';
 import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/Global.dart';
@@ -54,7 +53,6 @@ class OrderPageState extends State<OrderPage> {
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
-    final RecordProvider recordProvider = Provider.of<RecordProvider>(context);
 
     memozier.runOnce(() => OrdersService.get().orderById(profile, widget._orderId).then((value) {
       setState(() {
@@ -113,7 +111,7 @@ class OrderPageState extends State<OrderPage> {
                                               context: context,
                                               isScrollControlled: true,
                                               builder: (context) => ResponseModal(
-                                                  order.master.id));
+                                                  order.master.id, order.id));
                                         }
                                       },
                                       elevation: 0,
@@ -161,19 +159,28 @@ class OrderPageState extends State<OrderPage> {
                         shrinkWrap: true,
                           children: <Widget>[
                             Visibility(
-                                visible: order?.status == 3,
+                                visible: order?.status == 3 ?? false,
                                 child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: <Widget>[
                                       Text("Подтвердить запись"),
                                       RaisedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              isNeedRefresh = true;
-                                              order.status = 2;
-                                            });
-                                            recordProvider.update();
-                                            Navigator.pop(context);
+                                          onPressed: () async {
+                                            var isUpdate = await OrdersService
+                                                .get()
+                                                .updateOrderStatus(
+                                                profile,
+                                                order.id,
+                                                order.client.id,
+                                                profile.id,
+                                                2
+                                            );
+                                            if(isUpdate) {
+                                              setState(() {
+                                                order.status = 2;
+                                              });
+                                              Navigator.pop(context);
+                                            }
                                           },
                                           elevation: 0,
                                           shape: RoundedRectangleBorder(
@@ -216,12 +223,22 @@ class OrderPageState extends State<OrderPage> {
                                     children: <Widget>[
                                       Text("Отменить заказ?"),
                                       RaisedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              isNeedRefresh = true;
-                                              order.status = 4;
-                                            });
-                                            profile.update();
+                                          onPressed: () async {
+                                            var isUpdate = await OrdersService
+                                                .get()
+                                                .updateOrderStatus(
+                                                profile,
+                                                order.id,
+                                                order.client.id,
+                                                order.master.id ?? null,
+                                                4
+                                            );
+                                            if(isUpdate) {
+                                              setState(() {
+                                                order.status = 4;
+                                              });
+                                              Navigator.pop(context);
+                                            }
                                             Navigator.pop(context);
                                           },
                                           elevation: 0,
@@ -272,7 +289,11 @@ class OrderPageState extends State<OrderPage> {
                                             color: defaultItemColor,
                                             borderRadius: defaultCircleBorderRadius
                                         ),
-                                        child: Text("${order?.client?.name[0].toUpperCase()}${order?.client?.surname[0].toUpperCase()}", style: titleMediumBlueStyle).center()
+                                        child: (
+                                        order?.client?.avatar == null ?
+                                        Text("${order?.client?.name[0].toUpperCase()}${order?.client?.surname[0].toUpperCase()}", style: titleMediumBlueStyle) :
+                                        order.client.avatar.getWidget()
+                                        ).center()
                                     ),
                                     Text("${order?.client?.name} ${order?.client?.surname}", style: titleMediumBlueStyle).marginW(
                                         left: Global.blockX * 3)
@@ -305,17 +326,20 @@ class OrderPageState extends State<OrderPage> {
                                   .center().marginW(left: margin5, right: margin5)
                                   : Text(order.name, style: titleMediumBlueStyle)
                                   .center().marginW(left: margin5, right: margin5),
-                              Container(
-                                decoration: BoxDecoration(
-                                    color: defaultItemColor,
-                                    borderRadius: BorderRadius.all(Radius.circular(10))),
-                                child: Text("$order.description", style: titleSmallStyle)
-                                    .paddingAll(Global.blockY),
-                              ).marginW(
-                                  left: margin5,
-                                  top: Global.blockY * 2,
-                                  right: margin5,
-                                  bottom: Global.blockY * 3),
+                              Visibility(
+                                visible: order.description.length > 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: defaultItemColor,
+                                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                                  child: Text("${order.description}", style: titleSmallStyle)
+                                      .paddingAll(Global.blockY)
+                                ).marginW(
+                                    left: margin5,
+                                    top: Global.blockY * 2,
+                                    right: margin5,
+                                    bottom: Global.blockY * 3)
+                              ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -336,7 +360,30 @@ class OrderPageState extends State<OrderPage> {
                                 ]
                               ).marginW(left: margin5, right: margin5),
                               Visibility(
-                                visible: order.photos.isNotEmpty,
+                                visible: order.city != null,
+                                child:
+                                Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("Город", style: titleSmallStyle),
+                                      Container(
+                                          padding: EdgeInsets.only(top: Global.blockY * 1, bottom: Global.blockY * 1),
+                                          margin: EdgeInsets.only(top: Global.blockY * 1, bottom: Global.blockY * 1),
+                                          decoration: BoxDecoration(
+                                              color: defaultItemColor,
+                                              borderRadius: defaultItemBorderRadius
+                                          ),
+                                          child: Row(
+                                              children: [
+                                                Text(order?.city?.name ?? "Не указан")
+                                              ]
+                                          )
+                                      )
+                                    ]
+                                ).marginW(left: margin5, right: margin5)
+                              ),
+                              Visibility(
+                                visible: order.photos.isNotEmpty && order.photos.length > 0,
                                 child: ExpansionTile(
                                   title: Text("Прикрепленные фотографии",
                                       style: titleSmallBlueStyle),
@@ -354,7 +401,7 @@ class OrderPageState extends State<OrderPage> {
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(10.0),
                                               ),
-                                              // child: Image.file(i, fit: BoxFit.cover),
+                                              child: i.getWidget(),
                                             ).onClick(() {
                                               Navigator.push(
                                                   context,
@@ -481,45 +528,113 @@ class OrderPageState extends State<OrderPage> {
                                     ),
                                   ]
                               ).marginW(left: margin5, right: margin5),
+                              order.status != 1 ?
                               Column(
                                   children: [
-                                    Visibility(
-                                      // visible: !order.isPrivate,
-                                      visible: true,
-                                      child: Text("Предложения мастеров", style: titleMediumBlueStyle)
-                                          .center()
-                                          .marginAll(Global.blockY * 2),
-                                    ).marginW(
+                                    Text("Ставки", style: titleMediumBlueStyle)
+                                        .center()
+                                        .marginAll(Global.blockY * 2).marginW(
                                         left: margin5,
                                         right: margin5),
-                                    Visibility(
-                                        // visible: !order.isPrivate,
-                                        visible: true,
+                                    Container(
                                         child: order.sentences.isEmpty
                                             ? Container(
                                           padding: EdgeInsets.all(Global.blockY),
                                           decoration: BoxDecoration(
-                                              color: Colors.grey.withOpacity(0.2),
+                                              color: defaultItemColor,
                                               borderRadius:
                                               BorderRadius.all(Radius.circular(10))),
-                                          child: Text("Предложений еще нет").center(),
-                                        )
-                                            : Column(
+                                          child: Text("Ставок еще нет").center(),
+                                        ) : Column(
                                             children: order.sentences
                                                 .map((s) {
-                                                  print("b ${s.toString()}");
-                                                  return SentencePreview(order, s)
-                                                      .marginW(
-                                                      top: Global.blockX,
-                                                      bottom: Global.blockY)
-                                                      .onClick(() {
+                                              print("b ${s.toString()}");
+                                              return SentencePreview(order, s)
+                                                  .marginW(
+                                                  top: Global.blockX,
+                                                  bottom: Global.blockY)
+                                                  .onClick(() {
 
-                                                  });
+                                              });
                                             }).toList()))
                                         .marginW(
                                         left: margin5,
                                         right: margin5)
                                   ]
+                              ).marginW(bottom: Global.blockY * 5) :
+                              Column(
+                                children: [
+                                  Text("Отзыв клиента", style: titleMediumBlueStyle)
+                                      .center()
+                                      .marginAll(Global.blockY * 2).marginW(
+                                      left: margin5,
+                                      right: margin5),
+                                  Container(
+                                    child: order.clientComment != null ?
+                                    CommentPreview(order.clientComment).marginW(
+                                        left: margin5,
+                                        right: margin5) :
+                                    (profile.id == order.client.id ?
+                                    RaisedButton(
+                                        onPressed: () async {
+                                            var r = await showModalBottomSheet(
+                                                backgroundColor: Colors.transparent,
+                                                context: context,
+                                                isScrollControlled: true,
+                                                builder: (context) => ResponseModal(
+                                                    order.master.id, order.id));
+                                            if(r != null) {
+                                              setState(() {
+                                                order.clientComment = r;
+                                              });
+                                          }
+                                        },
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius: defaultItemBorderRadius
+                                        ),
+                                        color: defaultColorAccent,
+                                        child:
+                                        Text("Добавить отзыв", style: smallWhiteStyle)) :
+                                      Text("Клиент еще не добавил отзыв о Вашей работе")
+                                    )
+                                  ),
+                                  Text("Отзыв мастера", style: titleMediumBlueStyle)
+                                      .center()
+                                      .marginAll(Global.blockY * 2).marginW(
+                                      left: margin5,
+                                      right: margin5),
+                                  Container(
+                                      child: order.masterComment != null ?
+                                      CommentPreview(order.masterComment).marginW(
+                                          left: margin5,
+                                          right: margin5) :
+                                      (profile.id == order.master.id ?
+                                      RaisedButton(
+                                          onPressed: () async {
+                                            var r = await showModalBottomSheet(
+                                                backgroundColor: Colors.transparent,
+                                                context: context,
+                                                isScrollControlled: true,
+                                                builder: (context) => ResponseModal(
+                                                    order.client.id, order.id));
+                                            if(r != null) {
+                                              setState(() {
+                                                order.clientComment = r;
+                                              });
+                                            }
+                                          },
+                                          elevation: 0,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius: defaultItemBorderRadius
+                                          ),
+                                          color: Colors.white,
+                                          child:
+                                          Text("Добавить отзыв", style: titleSmallBlueStyle)) :
+                                      Text("Мастер еще не оставил отзыв о Вас")
+                                      )
+                                  ),
+                                ]
                               ).marginW(bottom: Global.blockY * 5)
                             ]
                         )
@@ -555,14 +670,17 @@ class SentencePreview extends StatelessWidget {
                   Row(
                     children: [
                       Container(
+                        height: Global.blockX * 10,
+                        width: Global.blockX * 10,
                         padding: EdgeInsets.all(Global.blockX),
                           margin: EdgeInsets.only(right: Global.blockX),
                           decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: defaultCircleBorderRadius
                           ),
-                          child: Text(
-                              s.masterAvatar == null ? "${s.masterName[0].toUpperCase()}${s.masterSurname[0].toUpperCase()}" : s.masterAvatar, style: titleMediumBlueStyle
+                          child: (s.masterAvatar == null || s.masterAvatar.isEmpty ? Text(
+                              "${s.masterName[0].toUpperCase()}${s.masterSurname[0].toUpperCase()}", style: titleMediumBlueStyle
+                          ) : Image.network("$url/images/${s.masterAvatar}")
                           ).center()
                       ),
                       Text("${s.masterName} ${s.masterSurname}",
@@ -764,8 +882,9 @@ class SentenceModalState extends State<SentenceModal> {
 
 class ResponseModal extends StatefulWidget {
   final int targetId;
+  final int orderId;
 
-  ResponseModal(this.targetId);
+  ResponseModal(this.targetId, this.orderId);
 
   @override
   State<StatefulWidget> createState() => ResponseModalState();
@@ -830,7 +949,7 @@ class ResponseModalState extends State<ResponseModal> {
                   right: margin5),
               RaisedButton(
                       onPressed: () async {
-                        var r = await CommentsRepository.get().createComment(profile, widget.targetId, _rate, _commentController.text);
+                        var r = await CommentsRepository.get().createComment(profile, widget.targetId, widget.orderId, _rate, _commentController.text);
                         print("$r");
                         Navigator.pop(context);
                       },

@@ -8,16 +8,19 @@ import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/holders/CategoriesHolder.dart';
+import 'package:style_app/holders/CitiesHolder.dart';
 import 'package:style_app/model/Category.dart';
+import 'package:style_app/model/City.dart';
 import 'package:style_app/model/MasterData.dart';
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/Record.dart';
 import 'package:style_app/model/Service.dart';
 import 'package:style_app/model/Sketch.dart';
-import 'package:style_app/providers/NewRecordProvider.dart';
+import 'package:style_app/providers/OrderProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/providers/ServicesProvider.dart';
 import 'package:style_app/service/OrdersService.dart';
-import 'package:style_app/ui/MasterProfileScreen.dart';
+import 'package:style_app/ui/ProfileScreen.dart';
 import 'package:style_app/ui/Modals.dart';
 import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/Global.dart';
@@ -28,12 +31,13 @@ import 'ImagePage.dart';
 
 class NewOrderScreen extends StatefulWidget {
   final UserData _master;
-  final SketchData _sketch;
+  final Sketch _sketch;
+  final City _city;
 
-  NewOrderScreen(this._master, this._sketch);
+  NewOrderScreen(this._master, this._sketch, this._city);
 
   @override
-  State<StatefulWidget> createState() => NewOrderScreenState();
+  State<StatefulWidget> createState() => NewOrderScreenState(_city);
 }
 
 class NewOrderScreenState extends State<NewOrderScreen> {
@@ -42,21 +46,26 @@ class NewOrderScreenState extends State<NewOrderScreen> {
   TextEditingController _priceController;
   TextEditingController _widthController;
   TextEditingController _heightController;
-  final List<File> _images = [];
+  final List<Photo> _images = [];
   final List<Service> servicesList = <Service> [];
   final SketchData sketchData = SketchData(isColored: true);
-
+  City city;
+  bool canHideModal = true;
+  NewOrderScreenState(this.city);
 
   @override
   void initState() {
     if(widget._sketch != null) {
-      _nameController = TextEditingController(text:  widget._sketch.tags);
+      _images.addAll(widget._sketch.photos);
+    }
+    if(widget._sketch != null) {
+      _nameController = TextEditingController(text:  widget._sketch.data.tags);
       _descriptionController = TextEditingController();
-      _priceController = TextEditingController(text: "${widget._sketch.price}");
-      _widthController = TextEditingController(text: "${widget._sketch.width}");
-      _heightController = TextEditingController(text: "${widget._sketch.height}");
-      sketchData.style = widget._sketch.style;
-      sketchData.position = widget._sketch.position;
+      _priceController = TextEditingController(text: "${widget._sketch.data.price}");
+      _widthController = TextEditingController(text: "${widget._sketch.data.width}");
+      _heightController = TextEditingController(text: "${widget._sketch.data.height}");
+      sketchData.style = widget._sketch.data.style;
+      sketchData.position = widget._sketch.data.position;
       var tatooService = CategoriesHolder.getTatooService();
       if(tatooService != null)
         servicesList.add(tatooService);
@@ -87,7 +96,12 @@ class NewOrderScreenState extends State<NewOrderScreen> {
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
+    final OrderProvider orders = Provider.of<OrderProvider>(context);
     final ServicesProvider services = Provider.of<ServicesProvider>(context);
+
+    print("city $city");
+    print("cities => ${CitiesHolder.cities}");
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: null,
@@ -101,17 +115,17 @@ class NewOrderScreenState extends State<NewOrderScreen> {
           ),
           onPressed: () async {
             try {
-              sketchData.width = int.parse(_widthController.text ?? "0");
-              sketchData.height = int.parse(_heightController.text ?? "0");
+              sketchData.width = int.parse(_widthController.text) ?? null;
+              sketchData.height = int.parse(_heightController.text) ?? null;
             } catch(e) {}
-            var newRecord = Order(
+            var newOrder = Order(
                 Random().nextInt(99999),
                 profile.id,
                 widget?._master?.id ?? null,
                 _priceController.text == null || _priceController.text.isEmpty ? null :
                 int.parse(_priceController.text),
                 0,
-                null,
+                city.id ?? null,
                 _nameController.text,
                 _descriptionController.text,
                 servicesList,
@@ -121,8 +135,56 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                 []
               );
             if(containsTatooService())
-              newRecord.sketch = sketchData;
-            OrdersService.get().createOrder(profile.token, newRecord);
+              newOrder.sketch = sketchData;
+            canHideModal = false;
+            showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (c) {
+                  return WillPopScope(
+                      onWillPop: () {
+                        // return Future<bool>.value(true);
+                        return Future<bool>.value(canHideModal);
+                      },
+                      child: Container(
+                          padding: EdgeInsets.only(top: Global.blockX * 5, bottom: Global.blockX * 5),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: defaultModalBorderRadius
+                          ),
+                          child: ListView(
+                              shrinkWrap: true,
+                              children: [
+                                Text("Создание заказа...", style: titleSmallBlueStyle).center().marginW(bottom: Global.blockX * 5),
+                                LinearProgressIndicator().center()
+                              ]
+                          )
+                      )
+                  );
+                }
+            );
+            var s = await OrdersService.get().createOrder(profile, newOrder);
+            print("${s.toString()} created");
+            for(var p in _images) {
+              if(p.type == PhotoSource.FILE) {
+                var i = await OrdersService.get().uploadOrderImage(profile, s.id, File(p.path));
+                print("$i uploaded");
+              } else if(p.type == PhotoSource.NETWORK) {
+                var i = await OrdersService.get().addExistingImage(profile, s.id, p.path);
+                print("$i uploaded");
+              }
+            }
+            orders.addOrderPreview(
+              OrderPreview(
+                newOrder.id,
+                newOrder.price,
+                newOrder.status,
+                0,
+                newOrder.name
+              )
+            );
+            canHideModal = true;
+            Navigator.pop(context);
           },
           child: Text("Создать обьявление", style: recordButtonStyle),
         ),
@@ -147,18 +209,6 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text("Мастер", style: titleSmallStyle),
-                    // Row(
-                    //   children: [
-                    //     Container(
-                    //       padding: EdgeInsets.all(Global.blockY),
-                    //       decoration: BoxDecoration(
-                    //         color: defaultItemColor,
-                    //         borderRadius: defaultCircleBorderRadius
-                    //       ),
-                    //       child: Text(widget._master != null ?
-                    //       (widget._master.avatar != null ? widget._master.avatar :
-                    //       "${widget._master.name[0].toUpperCase()}${widget._master.surname[0].toUpperCase()}") : "").center(),
-                    //     ),
                         Text(widget._master != null ? "${widget._master.name} ${widget._master.surname}" : "", style: titleSmallBlueStyle)
                             .onClick(() {
                           Navigator.push(
@@ -251,6 +301,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                             Text("Выбрать", style: titleSmallBlueStyle).onClick(() async {
                               await showModalBottomSheet(
                                   context: context,
+                                  backgroundColor: Colors.transparent,
                                   builder: (c) => SelectStyleModal(sketchData)
                               );
                               setState(() {});
@@ -273,6 +324,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                             Text("Выбрать", style: titleSmallBlueStyle).onClick(() async {
                               await showModalBottomSheet(
                                   context: context,
+                                  backgroundColor: Colors.transparent,
                                   builder: (c) => SelectPositionModal(sketchData)
                               );
                               setState(() {});
@@ -348,6 +400,32 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                     ]
                   ).marginW(left: margin5, right: margin5)
                 ),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Выберите город", style: titleSmallStyle),
+                      Text("Выбрать", style: titleSmallBlueStyle).onClick(() async {
+                        var c = await showModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            builder: (c) => SelectOrderCityModal(city)
+                        );
+                        if(c != null)
+                          setState(() {
+                            city = c;
+                          });
+                      })
+                    ]
+                ).marginW(left: margin5, right: margin5),
+                Container(
+                  width: Global.width,
+                  padding: EdgeInsets.only(left: Global.blockX * 2, top: Global.blockX * 3, bottom: Global.blockX * 3),
+                  decoration: BoxDecoration(
+                      color: defaultItemColor,
+                      borderRadius: defaultItemBorderRadius
+                  ),
+                  child: Text(city?.name ?? "Выберите город", style: city == null ? hintSmallStyle : null),
+                ).marginW(left: margin5, right: margin5, bottom: Global.blockY * 2),
                 Text("Введите стоимость", style: titleSmallStyle).marginW(left: margin5, right: margin5),
                 Container(
                   padding: EdgeInsets.only(left: Global.blockX * 2),
@@ -374,7 +452,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                       final pickedFile = await picker.getImage(source: ImageSource.gallery);
                       if(pickedFile != null)
                         setState(() {
-                          _images.add(File(pickedFile.path));
+                          _images.add(Photo(pickedFile.path, PhotoSource.FILE));
                         });
                     })
                   ]
@@ -399,7 +477,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
-                              child: Image.file(i, fit: BoxFit.contain),
+                              child: i.getWidget(),
                           ).onClick(() {
                             Navigator.push(context, MaterialWithModalsPageRoute(
                                 builder: (context) => ImageFilePage(_images)

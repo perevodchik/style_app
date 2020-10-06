@@ -5,15 +5,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:provider/provider.dart';
-import 'package:style_app/model/Comment.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:style_app/model/MasterData.dart';
 import 'package:style_app/providers/CitiesProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
-import 'package:style_app/providers/ServicesProvider.dart';
-import 'package:style_app/providers/SketchesProvider.dart';
 import 'package:style_app/service/CitiesService.dart';
 import 'package:style_app/service/ProfileService.dart';
-import 'package:style_app/service/ServicesRepository.dart';
 import 'package:style_app/ui/Main.dart';
 import 'package:style_app/ui/Modals.dart';
 import 'package:style_app/utils/Constants.dart';
@@ -30,13 +27,6 @@ class AuthScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     Global.build(MediaQuery.of(context));
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
-    final CitiesProvider cities = Provider.of<CitiesProvider>(context);
-    final ServicesProvider services = Provider.of<ServicesProvider>(context);
-    if(!_isInit) {
-      CitiesService.get().getCities(cities);
-      ServicesRepository.get().getAllCategoriesAndServices(services);
-      _isInit = true;
-    }
 
     return Scaffold(
       appBar: null,
@@ -51,7 +41,7 @@ class AuthScreen extends StatelessWidget {
                 ]
               ).marginW(top: Global.blockY * 5, bottom: Global.blockY * 20),
               RaisedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     profile.profileType = 0;
                     showModalBottomSheet(
                         context: context,
@@ -226,7 +216,6 @@ class SmsCodeModalState extends State<SmsCodeModal> {
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
-    final SketchesProvider sketches = Provider.of<SketchesProvider>(context);
     return Container(
         padding: MediaQuery.of(context).viewInsets,
         decoration: BoxDecoration(
@@ -287,18 +276,23 @@ class SmsCodeModalState extends State<SmsCodeModal> {
                                 profile.profileType,
                                 profile.city,
                                 0,
+                                0.0,
                                 profile.phone,
                                 "",
                                 profile.name,
                                 profile.surname,
                                 "",
+                                "",
                                 profile.email,
-                                true, true, true,
+                                true, true, true, false,
                                 [], [], []), profile.profileType);
                           }
                           if(user != null) {
+                            var s = await SharedPreferences.getInstance();
                             TempData.user = user;
-                            profile.set(user, []);
+                            profile.set(user);
+                            s.setInt("type", profile.profileType);
+                            s.setString("token", profile.token);
                             Navigator.pop(context);
                             Navigator.pushReplacement(
                                 context,

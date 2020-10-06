@@ -1,4 +1,5 @@
 import 'package:style_app/model/MasterShortData.dart';
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/ServiceWrapper.dart';
 import 'package:style_app/model/Sketch.dart';
 
@@ -11,23 +12,26 @@ class UserData {
   int profileType;
   int city;
   int commentsCount;
+  double rate;
   String avatar;
   String phone;
   String name;
   String surname;
   String address;
+  String about;
   String email;
   String token;
   bool isShowAddress;
   bool isShowPhone;
   bool isShowEmail;
-  List<String> portfolioImages;
+  bool isRecorded;
+  List<Photo> portfolioImages;
   List<Sketch> sketches;
   List<CommentFull> comments;
   List<Category> services;
 
-  UserData(this.id, this.profileType, this.city, this.commentsCount, this.phone, this.avatar, this.name, this.surname, this.address, this.email,
-      this.isShowAddress, this.isShowPhone, this.isShowEmail, this.portfolioImages, this.comments, this.services);
+  UserData(this.id, this.profileType, this.city, this.commentsCount, this.rate, this.phone, this.avatar, this.name, this.surname, this.address, this.about, this.email,
+      this.isShowAddress, this.isShowPhone, this.isShowEmail, this.isRecorded, this.portfolioImages, this.comments, this.services);
 
   bool checkCity(List<int> cities) {
     if(city == null)
@@ -35,19 +39,6 @@ class UserData {
     for(var cityId in cities)
       if(cityId == city)
         return true;
-    return false;
-  }
-
-  bool checkService(List<Service> filterServices) {
-    // if(services.isEmpty)
-    //   return false;
-    //
-    // for(var serviceList in services.values)
-    //   for(var s in serviceList)
-    //     for(var ss in filterServices)
-    //       if(s.id == ss.id)
-    //         return true;
-
     return false;
   }
 
@@ -61,26 +52,17 @@ class UserData {
     return rate / comments.length;
   }
 
-  ProfileShortData toShortData() {
-    return ProfileShortData(id, avatar, name, surname, getAverageRate());
-  }
-
   String getNames() {
     return "$name $surname";
   }
 
   List<ServiceWrapper> getServices() {
-    // var returnedServices = <ServiceWrapper> [];
-    // for(var e in services.values)
-    //   returnedServices.addAll(e);
-    // return returnedServices;
-    // return services;
     return [];
   }
 
   @override
   String toString() {
-    return 'UserData{id: $id, profileType: $profileType, city: $city, avatar: $avatar, phone: $phone, name: $name, surname: $surname, address: $address, email: $email, token: $token, isShowAddress: $isShowAddress, isShowPhone: $isShowPhone, isShowEmail: $isShowEmail, portfolioImages: $portfolioImages, sketches: $sketches, comments: $comments, services: $services}';
+    return 'UserData{id: $id, profileType: $profileType, city: $city, commentsCount: $commentsCount, rate: $rate, avatar: $avatar, phone: $phone, name: $name, surname: $surname, address: $address, about: $about, email: $email, token: $token, isShowAddress: $isShowAddress, isShowPhone: $isShowPhone, isShowEmail: $isShowEmail, isRecorded: $isRecorded, portfolioImages: $portfolioImages, sketches: $sketches, comments: $comments, services: $services}';
   }
 }
 
@@ -90,7 +72,7 @@ class UserShortData {
   double rate;
   String name;
   String surname;
-  String avatar;
+  Photo avatar;
   String portfolio;
 
   UserShortData(this.id, this.cityId, this.rate, this.name, this.surname,
@@ -102,7 +84,7 @@ class UserShortData {
     json["rate"],
     json["name"],
     json["surname"],
-    json["avatar"],
+    json["avatar"] != null ? Photo(json["avatar"], PhotoSource.NETWORK) : null,
     json["portfolio"]
   );
 
@@ -116,9 +98,16 @@ class UserShort {
   int id;
   String name;
   String surname;
-  String avatar;
+  Photo avatar;
 
   UserShort(this.id, this.name, this.surname, this.avatar);
+
+  factory UserShort.fromJson(Map<String, dynamic> json) => UserShort(
+    json["id"],
+    json["name"],
+    json["surname"],
+    json["avatar"] == null ? null : Photo(json["avatar"], PhotoSource.NETWORK)
+  );
 
   @override
   String toString() {

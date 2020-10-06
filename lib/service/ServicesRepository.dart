@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:style_app/model/Category.dart';
-import 'package:style_app/model/Service.dart';
 import 'package:style_app/model/ServiceWrapper.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/providers/ServicesProvider.dart';
+import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/HeadersUtil.dart';
 
 class ServicesRepository {
@@ -20,10 +20,11 @@ class ServicesRepository {
 
   Future<List<Category>> getAllCategoriesAndServices(ServicesProvider provider) async{
     var map = <Category> [];
-    var r = await http.get("http://10.0.2.2:8089/categories/all", headers: HeadersUtil.getHeaders());
+    var r = await http.get("$url/categories/all", headers: HeadersUtil.getHeaders());
     print("[${r.statusCode}] [${r.body}]");
     if(r.statusCode == 200) {
-      var b = jsonDecode(r.body.toString());
+      final decodeData = utf8.decode(r.bodyBytes);
+      var b = jsonDecode(decodeData);
       for(var c in b) {
         var category = Category.fromJson(c);
         map.add(category);
@@ -35,11 +36,12 @@ class ServicesRepository {
 
   Future<List<Category>> getMasterServices(ProfileProvider provider) async {
     var data = <Category> [];
-    var r = await http.get("http://10.0.2.2:8089/masters/services/${provider.id}",
+    var r = await http.get("$url/masters/services/${provider.id}",
         headers: HeadersUtil.getAuthorizedHeaders(provider.token));
     print("[${r.statusCode}] [${r.body}]");
     if(r.statusCode == 200) {
-      var b = jsonDecode(r.body);
+      final decodeData = utf8.decode(r.bodyBytes);
+      var b = jsonDecode(decodeData);
       for(var c in b) {
         var category = Category.fromJson(c);
         print("category ${category.toString()}");
@@ -58,7 +60,7 @@ class ServicesRepository {
       "time": wrapper.time,
       "description": wrapper.description
     });
-    var r = await http.post("http://10.0.2.2:8089/masters/services/create",
+    var r = await http.post("$url/masters/services/create",
         headers: HeadersUtil.getAuthorizedHeaders(provider.token),
         body: body);
     print("[${r.statusCode}] [${r.body}]");
@@ -74,7 +76,7 @@ class ServicesRepository {
       "time": wrapper.time,
       "description": wrapper.description
     });
-    var r = await http.post("http://10.0.2.2:8089/masters/services/delete",
+    var r = await http.post("$url/masters/services/delete",
         headers: HeadersUtil.getAuthorizedHeaders(provider.token),
         body: body);
     print("[${r.statusCode}] [${r.body}]");
@@ -91,7 +93,7 @@ class ServicesRepository {
       "description": text
     });
     print(body);
-    var r = await http.post("http://10.0.2.2:8089/masters/services/update",
+    var r = await http.post("$url/masters/services/update",
       headers: HeadersUtil.getAuthorizedHeaders(provider.token),
       body: body);
     print("[${r.statusCode}] [${r.body}]");

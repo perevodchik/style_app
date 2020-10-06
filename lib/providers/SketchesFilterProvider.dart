@@ -3,15 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:style_app/model/Sketch.dart';
 
 class SketchesFilterProvider extends ChangeNotifier {
-  List<String> _tags = [];
+  String _tags = "";
+  int _min;
+  int _max;
   RangeValues _values = RangeValues(1, 1);
-  bool _isUseFilter = false;
   bool _isJustFavorite = false;
 
-  List<String> get tags => _tags;
-  set tags(List<String> val) {
-    _tags.clear();
-    _tags.addAll(val);
+  int get min => _min;
+  set min(int val) {
+    _min = val;
+    notifyListeners();
+  }
+
+  int get max => _max;
+  set max(int val) {
+    _max = val;
+    notifyListeners();
+  }
+
+  String get tags => _tags;
+  set tags(String val) {
+    _tags = val;
     notifyListeners();
   }
 
@@ -21,52 +33,10 @@ class SketchesFilterProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool get isUseFilter => _isUseFilter;
-  set isUseFilter(bool val) {
-    _isUseFilter = val;
-    notifyListeners();
-  }
-
   bool get isJustFavorite => _isJustFavorite;
   set isJustFavorite(bool val) {
     _isJustFavorite = val;
     notifyListeners();
   }
 
-  void addTag(String tag) {
-    _tags.add(tag);
-    notifyListeners();
-  }
-
-  void removeTag(String tag) {
-    _tags.remove(tag);
-    notifyListeners();
-  }
-
-  bool filterByFavorite(Sketch sketch) {
-    if(_isJustFavorite) {
-      print("isFavorite? $sketch");
-      return sketch.isFavorite;
-    }
-    return true;
-  }
-
-  bool filterByPrice(Sketch sketch) {
-    return sketch.data.price >= _values.start && sketch.data.price <= _values.end;
-  }
-
-  bool filterByTags(Sketch sketch) {
-    if(_tags.isNotEmpty) {
-      if(_tags.length == 1 && _tags.isEmpty) {
-        return true;
-      } else {
-        for(var tag in sketch.data.tags.split("#")) {
-          if(_tags.contains(tag)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
 }

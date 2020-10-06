@@ -1,14 +1,13 @@
-import 'dart:io';
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/utils/Global.dart';
 import 'package:style_app/utils/Style.dart';
 import 'package:style_app/utils/Widget.dart';
 
 class ImagePage extends StatelessWidget {
-  final List<String> images;
+  final List<Photo> images;
   ImagePage(this.images);
 
   @override
@@ -34,6 +33,7 @@ class ImagePage extends StatelessWidget {
           Expanded(
             child: CarouselSlider(
               options: CarouselOptions(
+                enableInfiniteScroll: false
               ),
               items: images.map((i) {
                 return Builder(
@@ -42,10 +42,9 @@ class ImagePage extends StatelessWidget {
                         width: MediaQuery.of(context).size.width,
                         margin: EdgeInsets.symmetric(horizontal: 5.0),
                         decoration: BoxDecoration(
-                          color: Colors.blueAccent,
                           borderRadius: BorderRadius.circular(10.0),
                         ),
-                        child: Text('$i', style: TextStyle(fontSize: 16.0)).center()
+                        child: i.getWidget().center()
                     );
                   },
                 );
@@ -56,11 +55,10 @@ class ImagePage extends StatelessWidget {
       ),
     ).safe();
   }
-
 }
 
 class ImageFilePage extends StatelessWidget {
-  final List<File> images;
+  final List<Photo> images;
   ImageFilePage(this.images);
 
   @override
@@ -100,7 +98,7 @@ class ImageFilePage extends StatelessWidget {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10.0),
                             ),
-                            child: Image.file(i).center()
+                            child: i.getWidget().center()
                         );
                       },
                     );
@@ -111,5 +109,4 @@ class ImageFilePage extends StatelessWidget {
       ),
     ).safe();
   }
-
 }

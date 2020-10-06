@@ -1,6 +1,7 @@
-import 'dart:io';
-
+import 'package:style_app/model/City.dart';
+import 'package:style_app/model/Comment.dart';
 import 'package:style_app/model/MasterData.dart';
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/Sentence.dart';
 import 'package:style_app/model/Service.dart';
 import 'package:style_app/model/Sketch.dart';
@@ -19,7 +20,7 @@ class Order {
   SketchData sketch;
   DateTime createDate;
   List<Service> services;
-  List<File> media;
+  List<Photo> media;
   List<Sentence> sentences;
 
   Order(
@@ -117,17 +118,20 @@ class OrderFull {
   UserShort client;
   UserShort master;
   SketchData sketchData;
+  City city;
   DateTime created;
-  List<String> photos = [];
+  List<Photo> photos = [];
   List<String> services = [];
   List<Sentence> sentences = [];
+  CommentFull clientComment;
+  CommentFull masterComment;
 
   OrderFull(this.id, this.status, this.price, this.name, this.description,
-      this.isPrivate, this.client, this.master, this.sketchData, this.created);
+      this.isPrivate, this.client, this.master, this.sketchData, this.city, this.created, this.clientComment, this.masterComment);
 
   @override
   String toString() {
-    return 'OrderFull{id: $id, status: $status, price: $price, name: $name, description: $description, isPrivate: $isPrivate, client: $client, master: $master, sketchData: $sketchData, created: $created, photos: $photos, services: $services, sentences: $sentences}';
+    return 'OrderFull{id: $id, status: $status, price: $price, name: $name, isPrivate: $isPrivate, client: $client, master: $master, sketchData: $sketchData, city: $city, created: $created, photos: $photos, services: $services, sentences: $sentences, clientComment: $clientComment, masterComment: $masterComment}';
   }
 }
 
@@ -145,7 +149,7 @@ class OrderAvailablePreview {
     json["id"],
     json["price"],
     json["name"],
-    json["description"],
+    json["description"] ?? "",
     DateTime.parse(json["created"])
   );
 
@@ -153,4 +157,16 @@ class OrderAvailablePreview {
   String toString() {
     return 'OrderAvailablePreview{id: $id, price: $price, name: $name, description: $description, created: $created}';
   }
+}
+
+class OrderName {
+  int id;
+  String name;
+
+  OrderName(this.id, this.name);
+
+  factory OrderName.fromJson(Map<String, dynamic> json) => OrderName(
+      json["id"],
+      json["name"]
+  );
 }

@@ -15,6 +15,8 @@ class ProfileProvider extends ChangeNotifier {
   String get phone => UserHolder.phone;
   String get email => UserHolder.email;
   String get address => UserHolder.address;
+  String get about => UserHolder.about;
+  String get avatar => UserHolder.avatar;
   bool get isShowAddress => UserHolder.isShowAddress;
   bool get isShowPhone => UserHolder.isShowPhone;
   bool get isShowEmail => UserHolder.isShowEmail;
@@ -64,6 +66,11 @@ class ProfileProvider extends ChangeNotifier {
 
   set address(String val) {
     UserHolder.address = val;
+    notifyListeners();
+  }
+
+  set avatar(String val) {
+    UserHolder.avatar = val;
     notifyListeners();
   }
 
@@ -121,7 +128,7 @@ class ProfileProvider extends ChangeNotifier {
 
   void update() => notifyListeners();
 
-  void set(UserData userData, List<Sketch> sketchesList) {
+  void set(UserData userData) {
     UserHolder.token = userData.token;
     UserHolder.profileType = userData.profileType;
     UserHolder.id = userData.id;
@@ -131,13 +138,14 @@ class ProfileProvider extends ChangeNotifier {
     UserHolder.phone = userData.phone;
     UserHolder.email = userData.email;
     UserHolder.address = userData.address;
+    UserHolder.about = userData.about;
+    UserHolder.avatar = userData.avatar;
     UserHolder.isShowAddress = userData.isShowAddress;
     UserHolder.isShowPhone = userData.isShowPhone;
     UserHolder.isShowEmail = userData.isShowEmail;
     UserHolder.services.clear();
     UserHolder.services.addAll(userData.getServices());
     UserHolder.sketches.clear();
-    UserHolder.sketches.addAll(sketchesList);
     notifyListeners();
   }
 

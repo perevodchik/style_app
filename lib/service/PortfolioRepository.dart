@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:async/async.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:style_app/model/PortfolioItem.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
+import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/HeadersUtil.dart';
 
 class PortfolioRepository {
@@ -19,12 +18,7 @@ class PortfolioRepository {
   }
 
   Future<PortfolioItem> createMasterPortfolioItem(ProfileProvider provider, PickedFile image) async {
-    // var stream = new http.ByteStream(image.openRead().cast());
-    // var length = await image.length();
-
-    var request = http.MultipartRequest("POST", Uri.parse("http://10.0.2.2:8089/masters/portfolio/create"));
-    // var upload = http.MultipartFile("upload", stream, length);
-    // request.files.add(upload);
+    var request = http.MultipartRequest("POST", Uri.parse("$url/masters/portfolio/create"));
     request.files.add(await http.MultipartFile.fromPath('upload', image.path));
     request.headers.addAll(HeadersUtil.getAuthorizedHeaders(provider.token));
 
@@ -41,7 +35,7 @@ class PortfolioRepository {
 
   Future<List<PortfolioItem>> getMasterPortfolio(ProfileProvider provider) async {
     var items = <PortfolioItem> [];
-    var r = await http.get("http://10.0.2.2:8089/masters/portfolio/${provider.id}",
+    var r = await http.get("$url/masters/portfolio/${provider.id}",
     headers: HeadersUtil.getAuthorizedHeaders(provider.token));
     print("[${r.statusCode}] [${r.body}]");
     if(r.statusCode == 200) {
@@ -58,7 +52,7 @@ class PortfolioRepository {
     var body = jsonEncode({
       "portfolioId": portfolio.id
     });
-    var r = await http.post("http://10.0.2.2:8089/masters/portfolio/delete",
+    var r = await http.post("$url/masters/portfolio/delete",
         headers: HeadersUtil.getAuthorizedHeaders(provider.token),
         body: body);
     print("[${r.statusCode}] [${r.body}]");

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:style_app/model/City.dart';
 import 'package:style_app/providers/CitiesProvider.dart';
+import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/HeadersUtil.dart';
 
 class CitiesService {
@@ -17,21 +18,21 @@ class CitiesService {
 
   Future<List<City>> getCities(CitiesProvider provider) async {
     var cities = <City> [];
-    if(provider.cities.isEmpty) {
-      var r = await http.get("http://10.0.2.2:8089/cities/all",
-          headers: HeadersUtil.getHeaders());
-      print("[${r.statusCode}] [${r.body}]");
-      if (r.statusCode == 200) {
-        var b = jsonDecode(r.body);
-        for (var c in b) {
-          var city = City(
-              c["id"],
-              c["name"]
-          );
-          cities.add(city);
-        }
-        provider.setAll(cities);
+    var r = await http.get("$url/cities/all",
+        headers: HeadersUtil.getHeaders());
+    print("[${r.statusCode}] [${r.body}]");
+    if (r.statusCode == 200) {
+      final decodeData = utf8.decode(r.bodyBytes);
+      var b = jsonDecode(decodeData);
+      print(b);
+      for (var c in b) {
+        var city = City(
+            c["id"],
+            c["name"]
+        );
+        cities.add(city);
       }
+      provider.setAll(cities);
     }
     return cities;
   }

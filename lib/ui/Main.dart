@@ -1,9 +1,14 @@
+import 'dart:async';
+
+import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:style_app/SocketController.dart';
+import 'package:style_app/providers/ConversionProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/ui/FindMasterScreen.dart';
-import 'package:style_app/ui/FindRecordsScreen.dart';
+import 'package:style_app/ui/FindOrdersScreen.dart';
 import 'package:style_app/ui/MessagesScreen.dart';
 import 'package:style_app/ui/SketchesScreen.dart';
 import 'package:style_app/ui/UserRecordsScreen.dart';
@@ -20,6 +25,7 @@ class Main extends StatefulWidget {
 }
 
 class MainState extends State<Main> with WidgetsBindingObserver {
+  final AsyncMemoizer memoizer = AsyncMemoizer();
   int _page = 0;
   static final List<Widget> clientPages = <Widget> [
     const FindMaster(),
@@ -29,12 +35,14 @@ class MainState extends State<Main> with WidgetsBindingObserver {
     Profile()
   ];
   static final List<Widget> masterPages = <Widget> [
-    const FindRecordsScreen(),
+    const FindOrdersScreen(),
     const MasterSketchesPage(),
     const Messages(),
     const Records(),
     Profile()
   ];
+
+  Timer socketTimer;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -50,14 +58,23 @@ class MainState extends State<Main> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if(socketTimer != null) {
+      socketTimer.cancel();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Global.build(MediaQuery.of(context));
+    memoizer.runOnce(() => Global.build(MediaQuery.of(context)));
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
-    print("build Main");
+    final ConversionProvider conversions = Provider.of<ConversionProvider>(context);
+    if(socketTimer == null) {
+      SocketController(profile, conversions).init();
+      socketTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+        SocketController(profile, conversions).init();
+      });
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomPadding: false,

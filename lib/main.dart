@@ -13,13 +13,14 @@ import 'package:style_app/providers/ServicesProvider.dart';
 import 'package:style_app/providers/SettingProvider.dart';
 import 'package:style_app/providers/SketchesFilterProvider.dart';
 import 'package:style_app/providers/SketchesProvider.dart';
-import 'package:style_app/ui/AuthScreen.dart';
+import 'package:style_app/ui/PreloaderScreen.dart';
 
 void main() {
-  runApp(MyApp());
-}
+  runApp(MyApp());}
+
 
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
   FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<NewRecordProvider>.value(value: NewRecordProvider()),
         ChangeNotifierProvider<ConversionProvider>.value(value: ConversionProvider()),
         ChangeNotifierProvider<SettingProvider>.value(value: SettingProvider()),
-        ChangeNotifierProvider<RecordProvider>.value(value: RecordProvider()),
+        ChangeNotifierProvider<OrdersProvider>.value(value: OrdersProvider()),
         ChangeNotifierProvider<SketchesProvider>.value(value: SketchesProvider()),
         ChangeNotifierProvider<CitiesProvider>.value(value: CitiesProvider()),
         ChangeNotifierProvider<SearchFilterProvider>.value(value: SearchFilterProvider()),
@@ -46,7 +47,8 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: const AuthScreen()
+        home: PreloaderScreen()
+        // home: const AuthScreen()
 //        const Main(),
       ),
     );

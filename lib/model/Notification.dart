@@ -1,22 +1,29 @@
+import 'package:style_app/model/MasterData.dart';
+import 'package:style_app/model/Record.dart';
+
 class Notification {
   int id;
-  int reason;
-  int masterId;
-  int clientId;
-  int recordId;
-  String firstDate;
-  String secondDate;
+  int notificationType;
+  UserShort user;
+  UserShort secondUser;
+  OrderName order;
+  bool isDirty;
+  DateTime createdAt;
 
-  Notification(this.id, this.reason, this.masterId, this.clientId, this.firstDate, {this.secondDate});
-}
+  Notification(this.id, this.notificationType, this.user, this.secondUser, this.order, this.isDirty, this.createdAt);
 
-class Notifications {
-  static List<Notification> notifications = [
-    Notification(1, 1, 113, 0, "10:00 22.12.2012"),
-    Notification(2, 1, 113, 0,  "10:00 22.12.2012"),
-    Notification(3, 2, 113, 1,  "10:00 22.12.2012"),
-    Notification(4, 3, 113, 2,  "10:00 22.12.2012", secondDate: "14:00 22.12.2012"),
-    Notification(5, 0, 113, 1,  "10:00 22.12.2012"),
-    Notification(6, 0, 113, 2,  "10:00 22.12.2012"),
-  ];
+  factory Notification.fromJson(Map<String, dynamic> json) => Notification(
+    json["id"],
+    json["notificationType"],
+    json["user"] != null ? UserShort.fromJson(json["user"]) : null,
+    json["secondUser"] != null ? UserShort.fromJson(json["secondUser"]) : null,
+    json["order"] != null ? OrderName.fromJson(json["order"]) : null,
+    json["isDirty"],
+    DateTime.parse(json["createdAt"])
+  );
+
+  @override
+  String toString() {
+    return 'Notification{id: $id, notificationType: $notificationType, user: $user, secondUser: $secondUser, order: $order, isDirty: $isDirty, createdAt: $createdAt}';
+  }
 }

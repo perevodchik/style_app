@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/PortfolioItem.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/service/PortfolioRepository.dart';
@@ -19,11 +20,10 @@ class PortfolioScreen extends StatefulWidget {
 
 class PortfolioScreenState extends State<PortfolioScreen> {
   var _items = <PortfolioItem> [];
-  var _images = <String> [];
+  var _images = <Photo> [];
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
-    print("build");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: null,
@@ -66,42 +66,33 @@ class PortfolioScreenState extends State<PortfolioScreen> {
                 print("[${s.connectionState}] [${s.hasData}] [${s.hasError}] [${s.data}] [${s.error}]");
                 if(s.connectionState == ConnectionState.done && s.hasData && !s.hasError) {
                     var data = s.data as List<PortfolioItem>;
-                    var images = data.map<String>((i) => i.image).toList();
+                    var images = data.map<Photo>((i) => Photo(i.image, PhotoSource.NETWORK)).toList();
                     _items.clear();
                     _items.addAll(data);
                     _images.clear();
                     _images.addAll(images);
-                    return Wrap(
-                        children: buildWidgets()
-                    );
+                    return GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+                        itemCount: s.data.length,
+                        itemBuilder: (_, i) {
+                          return PortfolioImagePreview(s.data[i])
+                              .onClick(() => Navigator.push(
+                              context,
+                              MaterialWithModalsPageRoute(
+                                  builder: (context) =>
+                                      ImagePage(_images)
+                              )
+                          )
+                          );
+                        });
                   }
-                else if(s.hasError)
-                  return Wrap(
-                      children: buildWidgets()
-                  );
-                else return CircularProgressIndicator();
+                else return CircularProgressIndicator().center();
               }
-            ).center().scroll()
+            )
           )
         ]
       )
     ).safe();
-  }
-
-  List<Widget> buildWidgets() {
-    print("buildWidgets");
-    return _items.map<Widget>((i) =>
-        PortfolioImagePreview(i)
-            .onClick(() => Navigator.push(
-            context,
-            MaterialWithModalsPageRoute(
-                builder: (context) =>
-                    ImagePage(_images)
-            )
-        )
-        )
-            .marginW(left: margin5 / 2, right: margin5 / 2, bottom: Global.blockY)
-    ).toList();
   }
 }
 
@@ -113,18 +104,17 @@ class PortfolioImagePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
     return Container(
-      height: Global.blockX * 40,
-      width: Global.blockX * 40,
+      margin: EdgeInsets.all(Global.blockX * 0.5),
       decoration: BoxDecoration(
         borderRadius: defaultItemBorderRadius,
-        color: defaultColorAccent
+        // color: defaultItemColor
       ),
       child: Stack(
         children: [
-          Text(portfolio.image).center(),
+          Image.network("$url/images/${portfolio.image}", scale: 0.5).center(),
           Positioned(
             top: 0, right: 0,
-            child: Icon(Icons.close, color: Colors.white, size: 36).onClick(() async {
+            child: Icon(Icons.close, color: defaultColorAccent, size: 36).onClick(() async {
               PortfolioRepository.get().deletePortfolioItem(profile, portfolio);
               profile.tick();
             })

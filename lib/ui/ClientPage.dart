@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/model/MasterData.dart';
 import 'package:style_app/model/NotifySettings.dart';
@@ -8,7 +7,6 @@ import 'package:style_app/providers/ConversionProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/providers/RecordProvider.dart';
 import 'package:style_app/ui/CommentBlock.dart';
-import 'package:style_app/ui/CorrespondenceScreen.dart';
 import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/Global.dart';
 import 'package:style_app/utils/Style.dart';
@@ -21,7 +19,7 @@ class ClientPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
     final ConversionProvider conversions = Provider.of<ConversionProvider>(context);
-    final RecordProvider records = Provider.of<RecordProvider>(context);
+    final OrdersProvider records = Provider.of<OrdersProvider>(context);
     bool isRecorded = records.isRecord(clientId: data.id, masterId: profile.id);
     return Scaffold(
       appBar: null,
@@ -135,14 +133,17 @@ class ClientPage extends StatelessWidget {
                               borderRadius: defaultCircleBorderRadius),
                           child: Icon(Icons.message, color: Colors.white).center()
                               )
-                          .onClick(() => Navigator.push(
-                          context,
-                          MaterialWithModalsPageRoute(
-                              builder: (context) {
-                                return Correspondence(
-                                    conversions.getConversion(data.id, profile.id));
-                              }
-                          )))).positionW(
+                      //     .onClick(() => Navigator.push(
+                      //     context,
+                      //     MaterialWithModalsPageRoute(
+                      //         builder: (context) {
+                      //           return Correspondence(
+                      //               conversions.getConversion(data.id, profile.id));
+                      //         }
+                      //     )
+                      // )
+                      // )
+                  ).positionW(
                       Global.blockX * 10, Global.blockX * 5, null, null)
                 ]).scroll()),
           )

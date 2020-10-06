@@ -1,10 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:style_app/holders/CitiesHolder.dart';
 import 'package:style_app/model/Category.dart';
+import 'package:style_app/model/City.dart';
 import 'package:style_app/model/NotifySettings.dart';
 import 'package:style_app/model/Position.dart';
 import 'package:style_app/model/Service.dart';
@@ -68,6 +68,41 @@ class SelectCityModal extends StatelessWidget {
   }
 }
 
+class SelectOrderCityModal extends StatelessWidget {
+  final City city;
+  SelectOrderCityModal(this.city);
+
+  @override
+  Widget build(BuildContext context) {
+    final CitiesProvider cities = Provider.of<CitiesProvider>(context);
+    return Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+                top: Radius.circular(10)),
+            color: Colors.white),
+        child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: cities.cities.length,
+            controller: ScrollController(),
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemBuilder:
+                (context, position) {
+              var city0 = cities.cities[position];
+              return Container(
+                  height:
+                  Global.blockY * 5,
+                  child: ListTile(
+                    dense: true,
+                    leading: Text(
+                        "${city0.name}", style: city0.id == city.id ? titleSmallBlueStyle : titleSmallStyle),
+                  ).onClick(() =>
+                      Navigator.pop(
+                          context, city0 == city ? null : city0)));
+            })
+    );
+  }
+}
+
 class SelectLanguageModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -90,10 +125,10 @@ class SelectLanguageModal extends StatelessWidget {
   }
 }
 
-class FindRecordsFilterModal extends StatelessWidget {
+class FindOrdersFilterModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final RecordProvider records = Provider.of<RecordProvider>(context);
+    final OrdersProvider orders = Provider.of<OrdersProvider>(context);
     return Container(
       padding: MediaQuery.of(context).viewInsets,
       decoration: BoxDecoration(
@@ -106,58 +141,100 @@ class FindRecordsFilterModal extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text("Выбрано городов: ${records.filterByCities.length}",
+              Text("Выбрано городов: ${orders.cities.length}",
                   style: titleSmallStyle),
               Text("выбрать", style: titleSmallBlueStyle).onClick(() {
                 showMaterialModalBottomSheet(
                     context: context,
                     backgroundColor: Colors.transparent,
-                    builder: (context, s) => RecordSelectCityModalSheet());
+                    builder: (context, s) => OrderSelectCityModalSheet());
               }),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text("Выбрано специализаций: ${records.filterByServices.length}",
+              Text("Выбрано специализаций: ${orders.services.length}",
                   style: titleSmallStyle),
               Text("выбрать", style: titleSmallBlueStyle).onClick(() {
                 showMaterialModalBottomSheet(
                     context: context,
                     backgroundColor: Colors.transparent,
-                    builder: (context, s) => RecordSelectServiceModalSheet());
+                    builder: (context, s) => OrderSelectServiceModalSheet());
               }),
             ],
           ).marginW(top: Global.blockY * 2, bottom: Global.blockY),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Показать только с городом"),
+              Text("Показать только с городом",
+                  style: titleSmallStyle),
               Switch(
-                value: records.isOnlyWithCity,
-                onChanged: (v) => records.isOnlyWithCity = v,
+                value: orders.isOnlyWithCity,
+                onChanged: (v) => orders.isOnlyWithCity = v,
               )
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Показать только с ценой"),
+              Text("Показать только с ценой",
+                  style: titleSmallStyle),
               Switch(
-                value: records.isOnlyWithPrice,
-                onChanged: (v) => records.isOnlyWithPrice = v,
+                value: orders.isOnlyWithPrice,
+                onChanged: (v) => orders.isOnlyWithPrice = v,
               )
             ],
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Включить фильтр"),
-              Switch(
-                value: records.isFilterEnable,
-                onChanged: (v) => records.isFilterEnable = v,
-              )
-            ],
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                RaisedButton(
+                    onPressed: () async {
+                      Navigator.pop(
+                          context,
+                        {
+                          "isUseFilter": false,
+                          "filter": ""
+                        }
+                      );
+                    },
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: defaultItemBorderRadius
+                    ),
+                    color: Colors.white,
+                    child:
+                    Text("Очистить", style: titleSmallBlueStyle)),
+                RaisedButton(
+                    onPressed: () async {
+                      var filterString = "";
+                      var filters = <String> [];
+                      if(orders.cities.isNotEmpty) {
+                        filters.add("cities=${orders.cities.map<int>((city) => city.id).toList().join(",")}");
+                      }
+                      if(orders.services.isNotEmpty) {
+                        filters.add("services=${orders.services.map<int>((service) => service.id).toList().join(",")}");
+                      }
+                      filters.add("price=${orders.isOnlyWithPrice}");
+                      filters.add("city=${orders.isOnlyWithCity}");
+                      filterString = filters.join("&");
+                      print(filterString);
+                      Navigator.pop(context,
+                          {
+                            "isUseFilter": true,
+                            "filter": filterString
+                          }
+                      );
+                    },
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: defaultItemBorderRadius
+                    ),
+                    color: defaultColorAccent,
+                    child:
+                    Text("Отфильтровать", style: smallWhiteStyle))
+              ]
           )
         ]
       ).marginW(left: margin5, top: Global.blockY * 2, right: margin5)
@@ -165,13 +242,13 @@ class FindRecordsFilterModal extends StatelessWidget {
   }
 }
 
-class RecordSelectCityModalSheet extends StatefulWidget {
+class OrderSelectCityModalSheet extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => RecordSelectCityModalSheetState();
+  State<StatefulWidget> createState() => OrderSelectCityModalSheetState();
 }
 
-class RecordSelectCityModalSheetState extends State<RecordSelectCityModalSheet> {
-  RecordSelectCityModalSheetState();
+class OrderSelectCityModalSheetState extends State<OrderSelectCityModalSheet> {
+  OrderSelectCityModalSheetState();
 
   @override
   Widget build(BuildContext context) {
@@ -188,9 +265,9 @@ class RecordSelectCityModalSheetState extends State<RecordSelectCityModalSheet> 
                 height: Global.blockY * 50,
                 child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: Cities.cities.length,
+                    itemCount: CitiesHolder.cities.length,
                     itemBuilder: (context, position) {
-                      return SelectableCityPreview(position);
+                      return SelectableCityPreview(CitiesHolder.cities[position]);
                     }))
           ],
         ).paddingW(left: Global.blockX * 5, right: Global.blockX * 5));
@@ -198,35 +275,35 @@ class RecordSelectCityModalSheetState extends State<RecordSelectCityModalSheet> 
 }
 
 class SelectableCityPreview extends StatelessWidget {
-  final int position;
+  final City city;
 
-  SelectableCityPreview(this.position);
+  SelectableCityPreview(this.city);
 
   @override
   Widget build(BuildContext context) {
-    final RecordProvider records = Provider.of<RecordProvider>(context);
+    final OrdersProvider records = Provider.of<OrdersProvider>(context);
     return Container(
         height: Global.blockY * 5,
         width: Global.blockX * 60,
         child: ListTile(
           dense: true,
-          leading: Text("${Cities.cities[position]}",
-              style: records.filterByCities.contains(position)
+          leading: Text("${city.name}",
+              style: records.cities.contains(city)
                   ? titleSmallBlueStyle
                   : titleSmallStyle)
               .onClick(() {
-            records.toggleCity(position);
+            records.toggleCity(city);
           }),
         ).onClick(() => Navigator.pop(context)));
   }
 }
 
-class RecordSelectServiceModalSheet extends StatefulWidget {
+class OrderSelectServiceModalSheet extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => RecordSelectServiceModalSheetState();
+  State<StatefulWidget> createState() => OrderSelectServiceModalSheetState();
 }
 
-class RecordSelectServiceModalSheetState extends State<RecordSelectServiceModalSheet> {
+class OrderSelectServiceModalSheetState extends State<OrderSelectServiceModalSheet> {
   @override
   Widget build(BuildContext context) {
     final SearchFilterProvider filter =
@@ -271,33 +348,60 @@ class SelectableServicePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final RecordProvider records = Provider.of<RecordProvider>(context);
+    final OrdersProvider order = Provider.of<OrdersProvider>(context);
     return Column(children: <Widget>[
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
         Text(service.name,
-            style: records.filterByServices.contains(service)
+            style: order.services.contains(service)
                 ? titleSmallBlueStyle
                 : hintSmallStyle)
             .onClick(() {
-          records.toggleService(service);
+          order.toggleService(service);
         }),
         Switch(
-          value: records.filterByServices.contains(service),
-          onChanged: (value) => records.toggleService(service),
+          value: order.services.contains(service),
+          onChanged: (value) => order.toggleService(service),
         )
       ])
     ]).paddingW(left: Global.blockX * 3, right: Global.blockX * 3);
   }
 }
 
-// ignore: must_be_immutable
-class SketchesFilterModal extends StatelessWidget {
-  final TextEditingController _tagsController = TextEditingController();
-  Timer _tagsTimer;
+class SketchesFilterModal extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => SketchesFilterModalState();
+}
+
+class SketchesFilterModalState extends State<SketchesFilterModal> {
+  TextEditingController _tagsController;
+  TextEditingController _minPriceController;
+  TextEditingController _maxPriceController;
+
+  @override
+  void initState() {
+    _tagsController = TextEditingController();
+    _minPriceController = TextEditingController();
+    _maxPriceController = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _tagsController.dispose();
+    _minPriceController.dispose();
+    _maxPriceController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final SketchesProvider sketches = Provider.of<SketchesProvider>(context);
-    final SketchesFilterProvider sketchesFilter = Provider.of<SketchesFilterProvider>(context);
+    final SketchesFilterProvider filter = Provider.of<SketchesFilterProvider>(context);
+
+    _minPriceController.text = "${filter.min ?? ""}";
+    _maxPriceController.text = "${filter.max ?? ""}";
+    _tagsController.text = filter.tags;
+
     return Container(
         padding: MediaQuery.of(context).viewInsets,
         decoration: BoxDecoration(
@@ -311,31 +415,40 @@ class SketchesFilterModal extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text("Стоимость"),
-                    RangeSlider(
-                      onChanged: (v) {
-                        sketchesFilter.values = v;
-                      },
-                      divisions: 20,
-                      labels: RangeLabels(
-                        sketchesFilter.values.start.round().toString(),
-                        sketchesFilter.values.end.round().toString(),
-                      ),
-                      min: 0,
-                      max: sketches.getMaxPrice(),
-                      values: sketchesFilter.values,
+                    Row(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(right: Global.blockY),
+                          width: Global.blockX * 25,
+                          child: TextField(
+                            controller: _minPriceController,
+                            minLines: 1,
+                            maxLines: 10,
+                            decoration: InputDecoration(
+                                hintText: "От",
+                                hintStyle: hintSmallStyle,
+                                border: InputBorder.none
+                            )
+                          )
+                        ),
+                        Container(
+                          width: Global.blockX * 25,
+                          child: TextField(
+                              controller: _maxPriceController,
+                              minLines: 1,
+                              maxLines: 10,
+                              decoration: InputDecoration(
+                                  hintText: "До",
+                                  hintStyle: hintSmallStyle,
+                                  border: InputBorder.none
+                              )
+                          )
+                        )
+                      ]
                     )
                   ]
               ),
               TextField(
-                onChanged: (v) {
-                  var timer = Timer(Duration(milliseconds: 500), () {
-                    sketchesFilter.tags = _tagsController.text.split(",").map((s) => s.trim()).toList();
-                    print(sketchesFilter.tags);
-                  });
-                  if(_tagsTimer != null)
-                    _tagsTimer.cancel();
-                  _tagsTimer = timer;
-                },
                 controller: _tagsController,
                 minLines: 1,
                 maxLines: 10,
@@ -350,23 +463,75 @@ class SketchesFilterModal extends StatelessWidget {
                   children: [
                     Text("Только избранные", style: titleSmallBlueStyle),
                     Switch(
-                        value: sketchesFilter.isJustFavorite,
+                        value: filter.isJustFavorite,
                         onChanged: (v) {
-                          sketchesFilter.isJustFavorite = v;
+                          filter.isJustFavorite = v;
                         }
                     )
                   ]
               ),
               Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text("Включить фильтр", style: titleSmallBlueStyle),
-                    Switch(
-                        value: sketchesFilter.isUseFilter,
-                        onChanged: (v) {
-                          sketchesFilter.isUseFilter = v;
-                        }
-                    )
+                    RaisedButton(
+                        onPressed: () async {
+                          filter.min = null;
+                          filter.max = null;
+                          filter.tags = "";
+                          Navigator.pop(context, {
+                            "isUseFilter": false
+                          });
+                        },
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: defaultItemBorderRadius
+                        ),
+                        color: Colors.white,
+                        child:
+                        Text("Очистить", style: titleSmallBlueStyle)),
+                    RaisedButton(
+                        onPressed: () async {
+                          var filterString = "";
+                          var filters = <String> [];
+                          if(_minPriceController.text.isNotEmpty && _minPriceController.text.length > 0) {
+                            var min = int.parse(_minPriceController.text ?? "-1");
+                            if(min > -1) {
+                              filters.add("min=$min");
+                              filter.min = min;
+                            }
+                          }
+                          if(_maxPriceController.text.isNotEmpty && _maxPriceController.text.length > 0) {
+                            var max = int.parse(_maxPriceController.text ?? "-1");
+                            if(max > -1) {
+                              filters.add("max=$max");
+                              filter.max = max;
+                            }
+                          }
+                          if(_tagsController.text.isNotEmpty && _tagsController.text.length > 0) {
+                            var tags = _tagsController
+                                .text
+                                .replaceAll(" ,", ",")
+                                .replaceAll(", ", ",")
+                                .replaceAll(" ", ",")
+                                .replaceAll("\n", ",");
+                            filters.add("tags=$tags");
+                            filter.tags = tags;
+                          }
+                          filters.add("favorites=${filter.isJustFavorite}");
+                          filterString = filters.join("&");
+                          print(filterString);
+                          Navigator.pop(context, {
+                            "isUserFilter": true,
+                            "filter": filterString
+                          });
+                        },
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: defaultItemBorderRadius
+                        ),
+                        color: defaultColorAccent,
+                        child:
+                        Text("Отфильтровать", style: smallWhiteStyle))
                   ]
               )
             ]
@@ -375,7 +540,7 @@ class SketchesFilterModal extends StatelessWidget {
   }
 }
 
-class FilterModal extends StatelessWidget {
+class MastersFilterModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SearchFilterProvider filter =
@@ -395,6 +560,7 @@ class FilterModal extends StatelessWidget {
                 Text("выбрать", style: titleSmallBlueStyle).onClick(() {
                   showMaterialModalBottomSheet(
                       context: context,
+                      backgroundColor: Colors.transparent,
                       builder: (context, s) => SelectCityModalSheet());
                 }),
               ],
@@ -407,10 +573,11 @@ class FilterModal extends StatelessWidget {
                 Text("выбрать", style: titleSmallBlueStyle).onClick(() {
                   showMaterialModalBottomSheet(
                       context: context,
+                      backgroundColor: Colors.transparent,
                       builder: (context, s) => SelectServiceModalSheet());
                 }),
               ],
-            ).marginW(top: Global.blockY * 2, bottom: Global.blockY),
+            ).marginW(top: Global.blockY * 3, bottom: Global.blockY),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
@@ -422,6 +589,48 @@ class FilterModal extends StatelessWidget {
                   },
                 )
               ],
+            ).marginW(bottom: Global.blockY),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                RaisedButton(
+                    onPressed: () async {
+                      Navigator.pop(context, {
+                        "isUseFilter": false
+                      });
+                    },
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: defaultItemBorderRadius
+                    ),
+                    color: Colors.white,
+                    child:
+                    Text("Очистить", style: titleSmallBlueStyle)),
+                RaisedButton(
+                    onPressed: () async {
+                      var filterString = "";
+                      var filters = <String> [];
+                      if(filter.cities.isNotEmpty) {
+                        filters.add("cities=${filter.cities.map<int>((city) => city.id).toList().join(",")}");
+                      }
+                      if(filter.services.isNotEmpty) {
+                        filters.add("services=${filter.services.map<int>((service) => service.id).toList().join(",")}");
+                      }
+                      filters.add("rate=${filter.isShowWithHighRate}");
+                      filterString = filters.join("&");
+                      Navigator.pop(context, {
+                        "isUserFilter": true,
+                        "filter": filterString
+                      });
+                    },
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: defaultItemBorderRadius
+                    ),
+                    color: defaultColorAccent,
+                    child:
+                    Text("Отфильтровать", style: smallWhiteStyle))
+              ]
             )
           ],
         ).paddingW(
@@ -488,12 +697,11 @@ class SelectStyleModal extends StatefulWidget {
   final SketchData data;
   SelectStyleModal(this.data);
   @override
-  State<StatefulWidget> createState() => SelectStyleState(data);
+  State<StatefulWidget> createState() => SelectStyleState();
 }
 
 class SelectStyleState extends State<SelectStyleModal> {
-  final SketchData data;
-  SelectStyleState(this.data);
+  SelectStyleState();
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
@@ -519,7 +727,7 @@ class SelectStyleState extends State<SelectStyleModal> {
               return buildStylesList(StylesHolder.styles);
             }
             else if(StylesHolder.styles.isEmpty)
-              return CircularProgressIndicator();
+              return CircularProgressIndicator().center();
             else {
               return Text("Нету данных").center();
             }
@@ -553,12 +761,11 @@ class SelectPositionModal extends StatefulWidget {
   final SketchData data;
   SelectPositionModal(this.data);
   @override
-  State<StatefulWidget> createState() => SelectPositionState(data);
+  State<StatefulWidget> createState() => SelectPositionState();
 }
 
 class SelectPositionState extends State<SelectPositionModal> {
-  final SketchData data;
-  SelectPositionState(this.data);
+  SelectPositionState();
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
@@ -584,7 +791,7 @@ class SelectPositionState extends State<SelectPositionModal> {
             return buildPositionsList(PositionsHolder.positions);
           }
           else if(PositionsHolder.positions.isEmpty)
-            return CircularProgressIndicator();
+            return CircularProgressIndicator().center();
           else {
             return Text("Нету данных").center();
           }
@@ -602,7 +809,7 @@ class SelectPositionState extends State<SelectPositionModal> {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("${position.name}", style: position == widget.data.position ? titleMediumBlueStyle : textStyle),
+                      Text("${position.name}", style: position.id == widget?.data?.position?.id ?? false ? titleMediumBlueStyle : textStyle),
                     ]
                 )
             ).marginW(left: margin5, right: margin5)

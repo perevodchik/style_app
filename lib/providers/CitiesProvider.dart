@@ -3,8 +3,6 @@ import 'package:style_app/model/City.dart';
 import 'package:style_app/holders/CitiesHolder.dart';
 
 class CitiesProvider extends ChangeNotifier {
-  // List<City> _cities = [];
-
   List<City> get cities => CitiesHolder.cities;
   set cities(List<City> val) {
     CitiesHolder.cities = val;

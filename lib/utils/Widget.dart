@@ -4,7 +4,8 @@ extension CustomDate on DateTime {
 
   String getTime() => "${this.hour < 10 ? "0${this.hour}" : this.hour}:${this.minute < 10 ? "0${this.minute}" : this.minute}";
   String getDate() => "${this.day < 10 ? "0${this.day}" : this.day}.${this.month < 10 ? "0${this.month}" : this.month}.${this.year}";
-
+  bool isDateEquals(DateTime date) => this.year == date.year && this.month == date.month && this.day == date.day;
+  bool isTimeEquals(DateTime date) => this.hour == date.hour && this.minute == date.minute;
   String getFullDate() => "${this.getTime()} ${this.getDate()}";
 
 }

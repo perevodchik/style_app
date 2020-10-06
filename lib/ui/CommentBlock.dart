@@ -4,6 +4,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:style_app/model/Comment.dart';
 import 'package:style_app/model/MasterData.dart';
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/ui/CommentsScreen.dart';
 import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/Global.dart';
@@ -76,6 +77,7 @@ class CommentPreview extends StatelessWidget {
   CommentPreview(this.comment);
   @override
   Widget build(BuildContext context) {
+    print(comment.toString());
     return Container(
         decoration: BoxDecoration(
             color: defaultItemColor,
@@ -92,7 +94,9 @@ class CommentPreview extends StatelessWidget {
                         color: Colors.white,
                         borderRadius:
                         defaultCircleBorderRadius),
-                    child: Text("${comment.commentatorName[0].toUpperCase()}${comment.commentatorSurname[0].toUpperCase()}", style: titleMediumBlueStyle).center(),
+                    child: (comment.commentatorAvatar == null || comment.commentatorAvatar.isEmpty ?
+                    Text("${comment.commentatorName[0].toUpperCase()}${comment.commentatorSurname[0].toUpperCase()}", style: titleMediumBlueStyle) :
+                    Photo(comment.commentatorAvatar, PhotoSource.NETWORK).getWidget()).center(),
                   ).sizeW(Global.blockY * 5, Global.blockY * 5).marginW(
                       top: Global.blockY,
                       right: Global.blockX * 2,

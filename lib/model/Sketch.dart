@@ -1,3 +1,4 @@
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/Position.dart';
 import 'package:style_app/model/Style.dart';
 
@@ -8,7 +9,7 @@ class Sketch {
   SketchData data;
   bool isFavorite;
   bool isHide;
-  List<String> photos = [];
+  List<Photo> photos = [];
 
   Sketch(this.id, this.masterId, this.masterFullName, this.data, this.isFavorite, this.isHide,
       this.photos);
@@ -22,12 +23,12 @@ class Sketch {
         SketchData.fromJson(json),
         json["isFavorite"] ?? false,
         json["isHide"] ?? false,
-        json["photos"] != null ? (json["photos"] as String).split(",") : []
+        json["photos"] != null ? (json["photos"] as String).split(",").map((p) => Photo(p, PhotoSource.NETWORK)).toList() : []
     );
   }
 
   Sketch clone() {
-    var photos1 = <String>[];
+    var photos1 = <Photo>[];
     photos1.addAll(photos);
     var clonedSketch = Sketch(
         null,
@@ -56,7 +57,7 @@ class SketchPreview {
         json["id"],
         json["masterId"],
         json["price"],
-        json["photos"] ?? ""
+        json["photos"] ?? null
     );
   }
 

@@ -11,6 +11,8 @@ class UserHolder {
   static String phone;
   static String email;
   static String address = "";
+  static String about = "";
+  static String avatar = "";
   static bool isShowAddress = true;
   static bool isShowPhone = true;
   static bool isShowEmail = true;

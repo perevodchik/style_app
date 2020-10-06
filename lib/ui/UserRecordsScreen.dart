@@ -1,8 +1,10 @@
-import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:style_app/holders/CitiesHolder.dart';
+import 'package:style_app/holders/UserOrdersHolder.dart';
+import 'package:style_app/model/Record.dart';
 import 'package:style_app/providers/OrderProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/service/OrdersService.dart';
@@ -23,7 +25,6 @@ class Records extends StatefulWidget {
 
 class RecordsState extends State<Records>{
   bool isLoadOrders = false;
-  final AsyncMemoizer memoizer = AsyncMemoizer();
   @override
   void initState() {
     super.initState();
@@ -34,7 +35,7 @@ class RecordsState extends State<Records>{
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
     final OrderProvider orders = Provider.of<OrderProvider>(context);
 
-    memoizer.runOnce(() async {
+    UserOrdersHolder.memoizer.runOnce(() async {
       OrdersService.get().loadUserOrders(profile).then((value) => orders.previews = value);
     });
 
@@ -45,7 +46,7 @@ class RecordsState extends State<Records>{
         visible: profile.profileType == 0,
         child: RaisedButton(
             onPressed: () => Navigator.push(context, MaterialWithModalsPageRoute(
-                builder: (context) => NewOrderScreen(null ,null)
+                builder: (context) => NewOrderScreen(null ,null, CitiesHolder.cityById(profile.city))
             )),
             color: Colors.blueAccent,
             elevation: 0,
@@ -77,43 +78,8 @@ class RecordsState extends State<Records>{
                 child: ListView.builder(
                   itemCount: orders.previews.length,
                   itemBuilder: (c, i) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey.withOpacity(0.3),
-                              spreadRadius: 2,
-                              blurRadius: 15,
-                              offset: Offset(0, 1))
-                        ],
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Text("${orders.previews[i].name}", style: titleMediumBlueStyle)
-                            ],
-                          ),
-                          Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Text("Цена ${orders.previews[i].price}", style: serviceSubtitleStyle)
-                              ]
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Text("Ставок ${orders.previews[i].sentencesCount}", textAlign: TextAlign.start),
-                              Text("${StatusUtils.getStatus(orders.previews[i].status)}", textAlign: TextAlign.start)
-                            ],
-                          )
-                        ],
-                      ).paddingAll(Global.blockY),
-                    ).marginW(top: Global.blockX, left: Global.blockX * 5, right: Global.blockX * 5, bottom: Global.blockY)
+                    return UserOrderPreview(orders.previews[i])
+                        .marginW(top: Global.blockX, left: Global.blockX * 5, right: Global.blockX * 5, bottom: Global.blockY)
                         .onClick(() {
                       Navigator.push(context,
                           MaterialWithModalsPageRoute(builder: (context) => OrderPage(orders.previews[i].id))
@@ -126,6 +92,49 @@ class RecordsState extends State<Records>{
           )
         ]
       )
+    );
+  }
+}
+
+class UserOrderPreview extends StatelessWidget {
+  final OrderPreview preview;
+
+  UserOrderPreview(this.preview);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          generateShadow()
+        ],
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text("${preview.name}", style: titleMediumBlueStyle)
+            ],
+          ),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text("Цена ${preview.price}", style: serviceSubtitleStyle)
+              ]
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text("Ставок ${preview.sentencesCount}", textAlign: TextAlign.start),
+              Text("${StatusUtils.getStatus(preview.status)}", textAlign: TextAlign.start)
+            ],
+          )
+        ],
+      ).paddingAll(Global.blockY),
     );
   }
 }

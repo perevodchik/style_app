@@ -8,16 +8,6 @@ class MessagesProvider extends ChangeNotifier {
 
   ];
   List<Message> _messages = [
-    Message(0, 1, 1, "message 1"),
-    Message(1, 0, 0, "message 2"),
-    Message(2, 2, 113, "message 3"),
-    Message(3, 2, 0, "message 4"),
-    Message(4, 2, 113, "message 5"),
-    Message(5, 1, 0, "message 6"),
-    Message(6, 1, 1, "message 7"),
-    Message(7, 1, 1, "message a"),
-    Message(8, 1, 113, "message q"),
-    Message(9, 1, 0, "message w")
   ];
   Map<Conversion, List<Message>> _data = {};
 

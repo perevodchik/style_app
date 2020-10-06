@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:style_app/model/Category.dart';
 import 'package:style_app/model/Comment.dart';
 import 'package:style_app/model/MasterData.dart';
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
+import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/HeadersUtil.dart';
 
 class UserService {
@@ -12,6 +15,7 @@ class UserService {
   static UserService _instance;
 
   static UserService get() {
+    print("url = [$url]");
     if(_instance == null)
       _instance = UserService();
     return _instance;
@@ -19,7 +23,7 @@ class UserService {
 
   Future<bool> isExist(String phone, int type) async {
     var r = await http.post(
-      "http://10.0.2.2:8089/users/exist",
+      "$url/users/exist",
       headers: HeadersUtil.getHeaders(),
       body: jsonEncode({
         "phone": phone,
@@ -38,12 +42,13 @@ class UserService {
     });
     print(body);
     var r = await http.post(
-        "http://10.0.2.2:8089/login",
+        "$url/login",
         body: body,
         headers: HeadersUtil.getHeaders());
     print("[code ${r.statusCode}] [body ${r.body}] [${r.headers}]");
     if(r.statusCode == 200) {
-      var b = jsonDecode(r.body);
+      final decodeData = utf8.decode(r.bodyBytes);
+      var b = jsonDecode(decodeData);
       print(b);
       return await getCurrentUserByTokenAndRole(b["access_token"], type);
     }
@@ -52,31 +57,34 @@ class UserService {
 
   Future<UserData> getCurrentUserByTokenAndRole(String token, int type) async {
     var r = await http.get(
-        "http://10.0.2.2:8089/users/current",
+        "$url/users/current",
         headers: HeadersUtil.getAuthorizedHeaders(token));
-    print("[code ${r.statusCode}]\n[body ${r.body}]\n[${r.headers}]");
+    print("[${r.statusCode}]\n[${r.body}]\n[${r.headers}]");
     if(r.statusCode == 200) {
-      var b = jsonDecode(r.body);
+      final decodeData = utf8.decode(r.bodyBytes);
+      var b = jsonDecode(decodeData);
       var user = UserData(
         b["id"],
         type,
         b["cityId"],
-        0,
+        b["commentsCount"] ?? 0,
+        b["rate"] ?? 0.0,
         b["phone"],
-        b["avatar"],
+        b["avatar"] ?? "",
         b["name"],
         b["surname"],
-        b["address"],
-        b["email"],
+        b["address"] ?? "",
+        b["about"] ?? "",
+        b["email"] ?? "",
         b["isShowAddress"] ?? true,
         b["isShowPhone"] ?? true,
         b["isShowEmail"] ?? true,
+        b["isRecorded"] ?? false,
         [],
         [],
         []
       );
       user.token = token;
-      print("$user");
       return user;
     }
     return null;
@@ -93,17 +101,18 @@ class UserService {
       "address": "",
       "avatar": ""
     });
-    var r = await http.post("http://10.0.2.2:8089/users/create",
+    var r = await http.post("$url/users/create",
     headers: HeadersUtil.getHeaders(), body: body);
     print("[${r.statusCode}] [${r.body}]");
     if(r.statusCode == 200) {
-      var b = jsonDecode(r.body);
+      final decodeData = utf8.decode(r.bodyBytes);
+      var b = jsonDecode(decodeData);
       user.id = b["id"];
     }
     return user;
   }
 
-  Future<bool> update(ProfileProvider profile, String name, String surname, String email, String address, int cityId) async {
+  Future<bool> update(ProfileProvider profile, String name, String surname, String email, String address, String about, int cityId) async {
     var body = jsonEncode({
       "cityId": cityId,
       "name": name,
@@ -111,13 +120,14 @@ class UserService {
       "email": email,
       "address": address,
       "avatar": "",
+      "about": about,
       "phone": profile.phone,
       "isShowAddress": profile.isShowAddress,
       "isShowPhone": profile.isShowPhone,
       "isShowEmail": profile.isShowEmail,
     });
 
-    var r = await http.post("http://10.0.2.2:8089/users/update",
+    var r = await http.post("$url/users/update",
         headers: HeadersUtil.getAuthorizedHeaders(profile.token),
         body: body);
     print("[${r.statusCode}][${r.body}]");
@@ -129,7 +139,7 @@ class UserService {
       "setting": setting,
       "value": newValue
     });
-    var r = await http.post("http://10.0.2.2:8089/users/privacy/update",
+    var r = await http.post("$url/users/privacy/update",
     headers: HeadersUtil.getAuthorizedHeaders(provider.token),
     body: body);
     print("[${r.statusCode}] [${r.body}]");
@@ -152,11 +162,12 @@ class UserService {
   }
 
   Future<UserData> getFullDataById(ProfileProvider provider, int masterId) async {
-    var r = await http.get("http://10.0.2.2:8089/users/full/$masterId",
+    var r = await http.get("$url/users/full/$masterId",
         headers: HeadersUtil.getAuthorizedHeaders(provider.token));
     print("[${r.statusCode}] [${r.body}]");
     if(r.statusCode == 200) {
-      var b = jsonDecode(r.body);
+      final decodeData = utf8.decode(r.bodyBytes);
+      var b = jsonDecode(decodeData);
 
       var services = <Category> [];
       var comments = <CommentFull> [];
@@ -189,23 +200,57 @@ class UserService {
         b["role"],
         b["cityId"],
         b["commentsCount"] ?? 0,
+        b["rate"] ?? 0.0,
         b["phone"],
-        b["avatar"],
+        b["avatar"] ?? "",
         b["name"],
         b["surname"],
-        b["address"],
-        b["email"],
-        b["isShowAddress"],
-        b["isShowPhone"],
-        b["isShowEmail"],
-        ((b["photos"] ?? "") as String).split(","),
+        b["address"] ?? "",
+        b["about"] ?? "",
+        b["email"] ?? "",
+        b["isShowAddress"] ?? true,
+        b["isShowPhone"] ?? true,
+        b["isShowEmail"] ?? true,
+        b["isRecorded"] ?? false,
+        [],
         comments,
         services
       );
+
+      var photos = ((b["photos"] ?? "") as String).split(",").map((i) => Photo(i, PhotoSource.NETWORK)).toList();
+      print("photos is $photos");
+      print("photos is ${photos.isEmpty}");
+      print("photos length ${photos.length}");
+      var photosForRemove = <Photo> [];
+      for(var p in photos) {
+        if(p.path.isEmpty || p.path.length < 2)
+          photosForRemove.add(p);
+      }
+      for(var p in photosForRemove)
+        photos.remove(p);
+      print("photos is $photos");
+      print("photos is ${photos.isEmpty}");
+      print("photos length ${photos.length}");
+      user.portfolioImages = photos;
+
       print("return ${user.toString()}");
       return user;
     }
     print("return null");
     return null;
+  }
+
+  Future<void> uploadAvatar(ProfileProvider profile, File file) async {
+    var r = new http.MultipartRequest("POST", Uri.parse("$url/users/avatar"));
+    r.files.add(await http.MultipartFile.fromPath(
+      'upload',
+      file.path
+    ));
+    r.headers.addAll(HeadersUtil.getAuthorizedHeaders(profile.token));
+    r.send().then((response) async {
+      var s = response.stream;
+      var r = await s.bytesToString();
+      profile.avatar = r;
+    });
   }
 }

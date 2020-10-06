@@ -6,18 +6,23 @@ import 'package:flutter/painting.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:style_app/SocketController.dart';
+import 'package:style_app/holders/ConversionsHolder.dart';
+import 'package:style_app/holders/SketchesHolder.dart';
+import 'package:style_app/holders/UserOrdersHolder.dart';
+import 'package:style_app/holders/UsersHolder.dart';
 import 'package:style_app/model/Category.dart';
 import 'package:style_app/model/NotifySettings.dart';
 import 'package:style_app/model/Service.dart';
-import 'package:style_app/model/ServiceWrapper.dart';
 import 'package:style_app/providers/CitiesProvider.dart';
+import 'package:style_app/providers/ConversionProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
-import 'package:style_app/providers/ServicesProvider.dart';
 import 'package:style_app/providers/SettingProvider.dart';
-import 'package:style_app/service/CategoryService.dart';
 import 'package:style_app/service/ProfileService.dart';
 import 'package:style_app/service/ServicesRepository.dart';
 import 'package:style_app/ui/AuthScreen.dart';
+import 'package:style_app/ui/CommentsScreen.dart';
 import 'package:style_app/ui/Modals.dart';
 import 'package:style_app/ui/PortfolioScreen.dart';
 import 'package:style_app/utils/Constants.dart';
@@ -33,12 +38,12 @@ class Profile extends StatefulWidget {
 }
 
 class ProfileState extends State<Profile> {
-  File _image;
   TextEditingController _nameController;
   TextEditingController _surnameController;
   TextEditingController _phoneController;
   TextEditingController _emailController;
   TextEditingController _addressController;
+  TextEditingController _aboutController;
   int city = 0;
 
   ProfileState();
@@ -50,6 +55,7 @@ class ProfileState extends State<Profile> {
     _phoneController = TextEditingController();
     _emailController = TextEditingController();
     _addressController = TextEditingController();
+    _aboutController = TextEditingController();
     super.initState();
   }
 
@@ -60,6 +66,7 @@ class ProfileState extends State<Profile> {
     _phoneController.dispose();
     _emailController.dispose();
     _addressController.dispose();
+    _aboutController.dispose();
     super.dispose();
   }
 
@@ -68,11 +75,13 @@ class ProfileState extends State<Profile> {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
     final SettingProvider settings = Provider.of<SettingProvider>(context);
     final CitiesProvider cities = Provider.of<CitiesProvider>(context);
+
     _nameController.text = profile.name;
     _surnameController.text = profile.surname;
     _phoneController.text = profile.phone;
     _emailController.text = profile.email;
     _addressController.text = profile.address;
+    _aboutController.text = profile.about;
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: null,
@@ -104,29 +113,34 @@ class ProfileState extends State<Profile> {
                             ]),
                         child: Column(
                           children: <Widget>[
-                            ProfileItem("Имя", _nameController)
+                            ProfileItem("Имя", false, _nameController)
                                 .marginW(left: margin5,
                                 right: margin5),
-                            ProfileItem("Фамилия", _surnameController)
+                            ProfileItem("Фамилия",false,  _surnameController)
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
-                            ProfileItem("Телефон", _phoneController)
+                            ProfileItem("Телефон", true, _phoneController)
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
-                            ProfileItem("E-mail", _emailController)
+                            ProfileItem("E-mail", false, _emailController)
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
-                            ProfileItem("Адресс", _addressController)
+                            ProfileItem("Адресс", false, _addressController)
                                   .marginW(left: margin5,
                                   top: Global.blockY * 1,
                                   right: margin5,
                                   bottom: Global.blockY * 1),
+                            ProfileItem("О себе", false, _aboutController, maxLines: 10)
+                                .marginW(left: margin5,
+                                top: Global.blockY * 1,
+                                right: margin5,
+                                bottom: Global.blockY * 1),
                             ProfileSelectItem("Язык", Languages.languages[settings.language], () async {
                               showModalBottomSheet(
                                   context: context,
@@ -151,6 +165,21 @@ class ProfileState extends State<Profile> {
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
+                            ProfileActionItem(
+                                "Комментарии", Icons.comment)
+                                .marginW(left: margin5,
+                                top: Global.blockY * 1,
+                                right: margin5,
+                                bottom: Global.blockY * 1)
+                                .onClick(() async {
+                                  var user = await UserService.get().getFullDataById(profile, profile.id);
+                                  Navigator.push(
+                                    context,
+                                    MaterialWithModalsPageRoute(
+                                      builder: (c) => Comments(user)
+                                    )
+                                  );
+                            }),
                             Visibility(
                               visible: profile.profileType == 1,
                               child: ProfileActionItem(
@@ -209,6 +238,7 @@ class ProfileState extends State<Profile> {
                                           _surnameController.text,
                                           _emailController.text,
                                           _addressController.text,
+                                          _aboutController.text,
                                           profile.city);
                                       if(result) {
                                         profile.name = _nameController.text;
@@ -226,7 +256,15 @@ class ProfileState extends State<Profile> {
                             Container(
                               width: Global.blockX * 80,
                               child: RaisedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    var s = await SharedPreferences.getInstance();
+                                    s.remove("token");
+                                    s.remove("type");
+                                    ConversionsHolder.clear();
+                                    UserOrdersHolder.clear();
+                                    UsersHolder.clear();
+                                    SketchesHolder.clear();
+                                    SocketController.get().disconnect();
                                     Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
@@ -257,21 +295,20 @@ class ProfileState extends State<Profile> {
                             borderRadius: BorderRadius.all(Radius.circular(50)),
                             boxShadow: [
                             ]),
-                          child: _image == null ? Container(
+                          child: profile.avatar.isEmpty ? Container(
                             child: Text("${profile.name[0]}${profile.surname[0]}", style: titleBigBlueStyle).center(),
                             decoration: BoxDecoration(
                               color: Colors.white.withAlpha(70),
                               borderRadius:
                               BorderRadius.circular(Global.blockX * 50),
                             ),
-                          ) : Image.file(_image),
+                          ) : Image.network("$url/images/${profile.avatar}"),
                       ).onClick(() async {
                         final picker = ImagePicker();
                         final pickedFile = await picker.getImage(source: ImageSource.gallery);
-                        setState(() {
-                          if(pickedFile != null)
-                            _image = File(pickedFile.path);
-                        });
+                        if(pickedFile != null) {
+                          UserService.get().uploadAvatar(profile, File(pickedFile.path));
+                        }
                       }).positionW(
                           Global.blockX * 37.5, 0, Global.blockX * 37.5, null)
                     ]).scroll()),
@@ -282,32 +319,38 @@ class ProfileState extends State<Profile> {
 
 class ProfileItem extends StatelessWidget {
   final String _name;
+  final bool _readOnly;
+  final int minLines;
+  final int maxLines;
   final TextEditingController _controller;
-  ProfileItem(this._name, this._controller);
+  ProfileItem(this._name, this._readOnly, this._controller, {this.minLines = 1, this.maxLines = 1});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: Global.blockY * 5,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Container(
               width: Global.blockX * 20,
-              child: Text(_name, style: profileAttributeStyle)),
+              child: Text(_name, style: profileAttributeStyle)
+          ),
           Container(
             width: Global.blockX * 60,
             child: TextField(
+              readOnly: _readOnly,
               controller: _controller,
+              minLines: minLines,
+              maxLines: maxLines,
               style: profileInputStyle,
               decoration: InputDecoration(
                   hintText: _name,
                   hintStyle: profileHintStyle,
-                  border: InputBorder.none),
-            ),
+                  border: InputBorder.none)
+            )
           )
-        ],
-      ),
+        ]
+      )
     );
   }
 }
@@ -360,12 +403,22 @@ class ProfileActionItem extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Container(child: Icon(_icon)),
-            Text(
-              _name,
-              style: profileInputStyle,
+            Container(
+              width: Global.blockX * 20,
+              child: Icon(_icon).marginW(right: Global.blockX * 5).center()
             ),
-            Icon(Icons.keyboard_arrow_right)
+            Expanded(
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _name,
+                      style: profileInputStyle,
+                    ),
+                    Icon(Icons.keyboard_arrow_right)
+                  ]
+              )
+            )
           ]
         ));
   }
@@ -375,7 +428,6 @@ class SetServicesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
-    print("rebuild");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: null,
@@ -449,28 +501,21 @@ class SelectableServicePreviewState extends State<SelectableServicePreview> {
 
   @override
   Widget build(BuildContext context) {
-    print("build service ${widget.service.toString()}");
     return Container(
       padding: EdgeInsets.only(left: Global.blockY, right: Global.blockY),
-      decoration: BoxDecoration(
-        // color: defaultItemColor,
-        // borderRadius: defaultItemBorderRadius
-      ),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
           Text(widget.service.name,
               style:
               titleSmallBlueStyle
           ).marginW(top: Global.blockY, bottom: Global.blockY)
-              .onClick(() {
-          }),
+              .onClick(() => showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (c) => EditMasterServiceModal(widget.service)
+          ))
           // )
         ])
-    ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockX)
-    .onClick(() => showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (c) => EditMasterServiceModal(widget.service)
-    ));
+    ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockX);
   }
 }
 

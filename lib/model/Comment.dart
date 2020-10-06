@@ -1,3 +1,5 @@
+import 'package:style_app/model/Photo.dart';
+
 class Comment {
   int id;
   int commentatorId;
@@ -15,7 +17,7 @@ class Comment {
     json["targetId"] as int,
     json["message"],
     json["rate"] as double,
-    date: DateTime.parse(json["created_at"])
+    date: DateTime.parse(json["createdAt"])
   );
 
   @override
@@ -45,6 +47,18 @@ class CommentFull {
       this.message,
       this.rate,
       this.date);
+
+  factory CommentFull.fromJson(Map<String, dynamic> json) => CommentFull(
+    json["id"],
+    json["commentatorId"],
+    json["targetId"],
+    json["commentatorName"],
+    json["commentatorSurname"],
+    json["commentatorAvatar"] ?? null,
+    json["message"] ?? "",
+    json["rate"],
+    DateTime.parse(json["createdAt"]).toLocal() ?? DateTime.now(),
+  );
 
   @override
   String toString() {

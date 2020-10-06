@@ -4,64 +4,66 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:style_app/holders/CitiesHolder.dart';
+import 'package:style_app/holders/UsersHolder.dart';
 import 'package:style_app/model/Category.dart';
 import 'package:style_app/model/MasterData.dart';
-import 'package:style_app/model/NotifySettings.dart';
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/Service.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/providers/SearchFilterProvider.dart';
 import 'package:style_app/providers/ServicesProvider.dart';
 import 'package:style_app/service/MastersRepository.dart';
 import 'package:style_app/ui/ImagePage.dart';
-import 'package:style_app/ui/MasterProfileScreen.dart';
+import 'package:style_app/ui/ProfileScreen.dart';
 import 'package:style_app/ui/Modals.dart';
+import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/Global.dart';
 import 'package:style_app/utils/Style.dart';
 import 'package:style_app/utils/Widget.dart';
 
 class FindMaster extends StatefulWidget {
-  const FindMaster();
+  const FindMaster({
+    Key key,
+  }) : super(key: key);
+
   @override
   State<StatefulWidget> createState() => FindMasterState();
 }
 
-class FindMasterState extends State<FindMaster> {
-  List<Service> findByService = [];
-  List<int> findByCity = [];
-  List<UserShortData> _users = [];
-  bool _isLoading = false;
-  bool _isFirstLoad = false;
-  bool _hasMore = true;
-  int _page = 0;
-  int _itemsPerPage = 10;
+class FindMasterState extends State<FindMaster>
+with AutomaticKeepAliveClientMixin {
+  String filter = "";
 
-  Future<List<UserShortData>> loadList(ProfileProvider profile, int page, int perPage) async {
-    _isLoading = true;
-    var list = await MastersRepository.get().loadMastersList(profile, page, perPage);
+  @override
+  bool get wantKeepAlive => true;
+
+  Future<List<UserShortData>> loadList(ProfileProvider profile, int page, int perPage, {String filter = ""}) async {
+    UsersHolder.isLoading = true;
+    var list = await MastersRepository.get().loadMastersList(profile, page, perPage, filter: filter);
     return list;
   }
 
-  void loadListAsync(ProfileProvider profile) async {
-    _isLoading = true;
-    MastersRepository.get().loadMastersList(profile, _page, _itemsPerPage).then((list) {
+  void loadListAsync(ProfileProvider profile, {String filter}) async {
+    UsersHolder.isLoading = true;
+    MastersRepository.get().loadMastersList(profile, UsersHolder.page, UsersHolder.itemsPerPage, filter: filter).then((list) {
       setState(() {
-        _isLoading = false;
-        _isFirstLoad = true;
-        _page++;
-        _users.clear();
-        _users.addAll(list);
-        if(list.length < _itemsPerPage)
-          _hasMore = false;
+        UsersHolder.isLoading = false;
+        UsersHolder.isFirstLoad = true;
+        UsersHolder.page++;
+        UsersHolder.users.clear();
+        UsersHolder.users.addAll(list);
+        UsersHolder.hasMore = list.length <= UsersHolder.itemsPerPage;
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
 
-    if(!_isLoading && !_isFirstLoad)
-      loadListAsync(profile);
+    UsersHolder.memoizer.runOnce(() => loadListAsync(profile, filter: ""));
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -72,12 +74,25 @@ class FindMasterState extends State<FindMaster> {
             Icon(Icons.filter_list, color: Colors.transparent),
             Text("Поиск мастеров", style: titleStyle),
             Icon(Icons.filter_list, color: Colors.blueAccent)
-                .onClick(() => showModalBottomSheet(
-                    context: context,
-                    backgroundColor: Colors.transparent,
-                    builder: (ctx) {
-                      return FilterModal();
-                    }))
+                .onClick(() async {
+                  var data = await showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      builder: (ctx) {
+                        return MastersFilterModal();
+                      });
+                  if(data != null) {
+                    var newList = await loadList(profile, 0, UsersHolder.itemsPerPage, filter: data["filter"] ?? "");
+                    setState(() {
+                      UsersHolder.page = 1;
+                      UsersHolder.hasMore = newList.length >= UsersHolder.itemsPerPage;
+                      UsersHolder.users.clear();
+                      UsersHolder.users.addAll(newList);
+                      filter = data["filter"] ?? "";
+                      UsersHolder.isLoading = false;
+                    });
+                  }
+            })
           ],
         ).marginW(
             left: Global.blockX * 5,
@@ -88,31 +103,34 @@ class FindMasterState extends State<FindMaster> {
           child: Container(
             child: RefreshIndicator(
               onRefresh: () async {
-                if(!_isLoading) {
-                  var r = await loadList(profile, 0, _itemsPerPage);
+                if(!UsersHolder.isLoading) {
+                  var r = await loadList(profile, 0, UsersHolder.itemsPerPage, filter: filter);
                   setState(() {
-                    _users.clear();
-                    _users.addAll(r);
-                    _hasMore = r.length == _itemsPerPage;
-                    _page = 1;
-                    _isLoading = false;
+                    UsersHolder.users.clear();
+                    UsersHolder.users.addAll(r);
+                    UsersHolder.hasMore = r.length >= UsersHolder.itemsPerPage;
+                    UsersHolder.page = 1;
+                    UsersHolder.isLoading = false;
                   });
                 }
               },
-              child: _isLoading && _users.isEmpty ? CircularProgressIndicator().center() : ListView.builder(
-                  itemCount: _users.length,
+              child: UsersHolder.isLoading && UsersHolder.users.isEmpty ?
+              CircularProgressIndicator().center() :
+              ListView.builder(
+                  itemCount: UsersHolder.users.length,
                   itemBuilder: (b, i) {
-                    if(_hasMore && i >= _users.length - 1 && !_isLoading) {
-                      loadList(profile, _page++, _itemsPerPage).then((value) {
+                    if(UsersHolder.hasMore && i >= UsersHolder.users.length - 1 && !UsersHolder.isLoading) {
+                      print("loadList 1");
+                      loadList(profile, UsersHolder.page++, UsersHolder.itemsPerPage, filter: filter).then((value) {
                         setState(() {
-                          _isLoading = false;
-                          _users.addAll(value);
-                          _hasMore = value.length == _itemsPerPage;
+                          UsersHolder.isLoading = false;
+                          UsersHolder.users.addAll(value);
+                          UsersHolder.hasMore = value.length == UsersHolder.itemsPerPage;
                         });
                       });
                       return CircularProgressIndicator().center();
                     }
-                    return ProfilePreview(_users[i])
+                    return ProfilePreview(UsersHolder.users[i])
                         .marginW(
                         left: Global.blockX * 5,
                         top: Global.blockY,
@@ -153,7 +171,7 @@ class SelectCityModalSheetState extends State<SelectCityModalSheet> {
                 height: Global.blockY * 50,
                 child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: Cities.cities.length,
+                    itemCount: CitiesHolder.cities.length,
                     itemBuilder: (context, position) {
                       return SelectableCityPreview(position);
                     }))
@@ -176,12 +194,12 @@ class SelectableCityPreview extends StatelessWidget {
         width: Global.blockX * 60,
         child: ListTile(
           dense: true,
-          leading: Text("${Cities.cities[position]}",
-                  style: filter.cities.contains(position)
+          leading: Text("${CitiesHolder.cities[position]}",
+                  style: filter.cities.contains(CitiesHolder.cities[position])
                       ? titleSmallBlueStyle
                       : titleSmallStyle)
               .onClick(() {
-            filter.toggleCity(position);
+            filter.toggleCity(CitiesHolder.cities[position]);
           }),
         ).onClick(() => Navigator.pop(context)));
   }
@@ -223,13 +241,15 @@ class SelectServiceModalSheetState extends State<SelectServiceModalSheet> {
         .center()
         .marginW(bottom: Global.blockY));
     map.forEach((value) {
-      widgets.add(Container(
-          alignment: Alignment.bottomLeft,
-          color: Colors.grey.withOpacity(0.1),
-          child: Text(value.name, style: titleMediumStyle)));
-      value.services?.forEach((service) {
-        widgets.add(SelectableServicePreview(service));
+      if(value.services != null && value.services.length > 0) {
+        widgets.add(Container(
+            alignment: Alignment.bottomLeft,
+            color: Colors.grey.withOpacity(0.1),
+            child: Text(value.name, style: titleSmallStyle)));
+        value.services?.forEach((service) {
+          widgets.add(SelectableServicePreview(service));
       });
+      }
     });
     return widgets;
   }
@@ -272,7 +292,6 @@ class ProfilePreview extends StatefulWidget {
 }
 
 class ProfilePreviewState extends State<ProfilePreview> {
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -302,8 +321,10 @@ class ProfilePreviewState extends State<ProfilePreview> {
                               color: Colors.white,
                               borderRadius: BorderRadius.all(
                                   Radius.circular(Global.blockX * 10))),
-                          child: Text("${widget.data.name[0]}${widget.data.surname[0]}",
-                                  style: titleSmallBlueStyle)
+                          child: widget.data.avatar == null ?
+                          Text("${widget.data.name[0]}${widget.data.surname[0]}",
+                              style: titleSmallBlueStyle).center() :
+                              widget.data.avatar.getWidget()
                               .center())
                       .marginW(right: Global.blockY),
                   Column(
@@ -348,6 +369,7 @@ class ProfilePreviewState extends State<ProfilePreview> {
           widget.data.portfolio != null?
           CarouselSlider(
             options: CarouselOptions(
+              enableInfiniteScroll: false,
               height: Global.blockY * 15,
             ),
             items: widget.data.portfolio.split(",").map((i) {
@@ -357,17 +379,19 @@ class ProfilePreviewState extends State<ProfilePreview> {
                       width: MediaQuery.of(context).size.width,
                       margin: EdgeInsets.symmetric(horizontal: 5.0),
                       decoration: BoxDecoration(
-                        color: Colors.blueAccent,
+                        color: defaultItemColor,
                         borderRadius: BorderRadius.circular(10.0),
                       ),
-                      child: Text('$i', style: TextStyle(fontSize: 16.0))
+                      child: Image.network("$url/images/$i")
                           .center())
                       .onClick(() {
                     Navigator.push(
                         context,
                         MaterialWithModalsPageRoute(
                             builder: (context) =>
-                                ImagePage(widget.data.portfolio.split(","))));
+                                ImagePage(
+                                    widget.data.portfolio.split(",").map((i) => Photo(i, PhotoSource.NETWORK))
+                                )));
                   });
                 },
               );

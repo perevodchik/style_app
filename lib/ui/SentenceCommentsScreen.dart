@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:style_app/model/SentenceComment.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/service/SentencesRepository.dart';
-import 'package:style_app/ui/MasterProfileScreen.dart';
+import 'package:style_app/ui/ProfileScreen.dart';
 import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/Global.dart';
 import 'package:style_app/utils/Style.dart';

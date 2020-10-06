@@ -1,22 +1,23 @@
 import 'package:flutter/cupertino.dart';
 import 'package:style_app/holders/OrdersHolder.dart';
+import 'package:style_app/model/City.dart';
 import 'package:style_app/model/MasterData.dart';
 import 'package:style_app/model/Record.dart';
 import 'package:style_app/model/Service.dart';
 
-class RecordProvider extends ChangeNotifier {
+class OrdersProvider extends ChangeNotifier {
   bool _isFilterEnable = false;
   bool _isOnlyWithPrice = false;
   bool _isOnlyWithCity = false;
-  List<int> _filterByCities = [];
-  List<Service> _filterByServices = [];
+  List<City> _cities = [];
+  List<Service> _services = [];
   List<Order> _records = [];
 
   bool get isFilterEnable => _isFilterEnable;
   bool get isOnlyWithCity => _isOnlyWithCity;
   bool get isOnlyWithPrice => _isOnlyWithPrice;
-  List<int> get filterByCities => _filterByCities;
-  List<Service> get filterByServices => _filterByServices;
+  List<City> get cities => _cities;
+  List<Service> get services => _services;
   List<Order> get records => _records;
   List<OrderAvailablePreview> get availableOrders => OrdersHolder.availables;
 
@@ -57,27 +58,27 @@ class RecordProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  set filterByCities(List<int> cities) {
-    _filterByCities = cities;
+  set filterByCities(List<City> cities) {
+    _cities = cities;
     notifyListeners();
   }
 
   set filterByServices(List<Service> services) {
-    _filterByServices = services;
+    _services = services;
     notifyListeners();
   }
 
-  void toggleCity(int city) {
-    if(_filterByCities.contains(city))
-      _filterByCities.remove(city);
-    else _filterByCities.add(city);
+  void toggleCity(City city) {
+    if(_cities.contains(city))
+      _cities.remove(city);
+    else _cities.add(city);
     notifyListeners();
   }
 
   void toggleService(Service service) {
-    if(_filterByServices.contains(service))
-      _filterByServices.remove(service);
-    else _filterByServices.add(service);
+    if(_services.contains(service))
+      _services.remove(service);
+    else _services.add(service);
     notifyListeners();
   }
 
@@ -97,18 +98,18 @@ class RecordProvider extends ChangeNotifier {
   }
 
   bool containsServices(List<Service> services) {
-    if(filterByServices.isEmpty)
+    if(services.isEmpty)
       return true;
-    for(var s in filterByServices)
+    for(var s in services)
       if(!services.contains(s))
         return false;
     return true;
   }
 
-  bool containsCities(int city) {
-    if(filterByCities.isEmpty || city == null)
+  bool containsCities(City city) {
+    if(cities.isEmpty || city == null)
       return true;
-    return filterByCities.contains(city);
+    return cities.contains(city);
   }
 
   bool isRecord({int masterId, int clientId}) {
