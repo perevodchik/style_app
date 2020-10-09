@@ -1,14 +1,16 @@
+import 'package:style_app/model/Photo.dart';
+
 class PortfolioItem {
   int id;
   int masterId;
-  String image;
+  Photo image;
 
   PortfolioItem(this.id, this.masterId, this.image);
 
   factory PortfolioItem.fromJson(Map<String, Object> json) => PortfolioItem(
     json["id"],
     json["masterId"],
-    json["image"]
+    Photo(json["image"], PhotoSource.NETWORK)
   );
 
   @override

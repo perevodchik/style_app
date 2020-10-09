@@ -10,10 +10,12 @@ import 'package:style_app/model/Category.dart';
 import 'package:style_app/model/Comment.dart';
 import 'package:style_app/model/MasterData.dart';
 import 'package:style_app/model/Service.dart';
+import 'package:style_app/providers/CitiesProvider.dart';
 import 'package:style_app/providers/ConversionProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/service/ProfileService.dart';
 import 'package:style_app/ui/CommentBlock.dart';
+import 'package:style_app/ui/CorrespondenceScreen.dart';
 import 'package:style_app/ui/CreateOrderScreen.dart';
 import 'package:style_app/ui/ImagePage.dart';
 import 'package:style_app/ui/SketchesScreen.dart';
@@ -50,6 +52,7 @@ class UserProfileState extends State<UserProfile> {
   Widget build(BuildContext context) {
     final ProfileProvider user = Provider.of<ProfileProvider>(context);
     final ConversionProvider conversions = Provider.of<ConversionProvider>(context);
+    final CitiesProvider cities = Provider.of<CitiesProvider>(context);
 
     _memoizer.runOnce(() async {
       var userData = await UserService.get().getFullDataById(user, widget._masterId);
@@ -68,7 +71,7 @@ class UserProfileState extends State<UserProfile> {
               Navigator.push(
                   context,
                   MaterialWithModalsPageRoute(
-                      builder: (context) => NewOrderScreen(_userData, null, CitiesHolder.cityById(_userData.city))));
+                      builder: (context) => NewOrderScreen(_userData, null, cities.byId(_userData.city))));
             },
             elevation: 0,
             shape: RoundedRectangleBorder(
@@ -144,70 +147,76 @@ class UserProfileState extends State<UserProfile> {
                                 )
                                     .paddingW(
                                     bottom: Global.blockX * 3),
-                                Container(
-                                  alignment: Alignment.bottomLeft,
-                                  child: Text("Фотографии", style: titleMediumStyle),
-                                ).paddingW(left: Global.blockX * 3),
-                                Container(
-                                    child: _userData.portfolioImages.length > 0 ?
-                                    Container(
-                                        color: Colors.white,
-                                        child: Stack(
-                                            children: <Widget>[
-                                              CarouselSlider(
-                                                  options: CarouselOptions(
-                                                    enableInfiniteScroll: false,
-                                                  ),
-                                                  items: _userData.portfolioImages.map((i) {
-                                                    return Builder(
-                                                        builder: (BuildContext context) {
-                                                          return Container(
-                                                              width: MediaQuery.of(context)
-                                                                  .size
-                                                                  .width,
-                                                              margin: EdgeInsets.symmetric(
-                                                                  horizontal: 5.0),
-                                                              decoration: BoxDecoration(
-                                                                borderRadius:
-                                                                BorderRadius.circular(
-                                                                    10.0),
-                                                              ),
-                                                              child:
-                                                              i.getWidget().center()
-                                                                  .center())
-                                                              .onClick(() {
-                                                            Navigator.push(
-                                                                context,
-                                                                MaterialWithModalsPageRoute(
-                                                                    builder: (context) =>
-                                                                        ImagePage(_userData
-                                                                            .portfolioImages)));
-                                                          });
-                                                        });
-                                                  }).toList()
-                                              ).center()
-                                            ]
-                                        )
-                                    ).sizeW(Global.blockX * 90, Global.blockY * 25) :
-                                    Text("Пользователь еще не добавил фотографий")
-                                )
-                                    .paddingW(
-                                    top: Global.blockX * 3,
-                                    bottom: Global.blockX * 3),
-                                Container(
-                                  alignment: Alignment.bottomLeft,
-                                  child: Text("Услуги", style: titleMediumStyle),
-                                ).paddingW(left: Global.blockX * 3),
-                                Container(
-                                    child: Column(
-                                        children: buildServiceList(
-                                            _userData.services    // _masterData.services
-                                        )))
-                                    .paddingW(
-                                    top: Global.blockX * 3,
-                                    bottom: Global.blockX * 3),
                                 Visibility(
-                                  visible: _userData.about.isNotEmpty || (_userData.isShowAddress && _userData.isRecorded),
+                                  visible: _userData.profileType == 1,
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        alignment: Alignment.bottomLeft,
+                                        child: Text("Фотографии", style: titleMediumStyle),
+                                      ).paddingW(left: Global.blockX * 3),
+                                      Container(
+                                          child: _userData.portfolioImages.length > 0 ?
+                                          Container(
+                                              color: Colors.white,
+                                              child: Stack(
+                                                  children: <Widget>[
+                                                    CarouselSlider(
+                                                        options: CarouselOptions(
+                                                          enableInfiniteScroll: false,
+                                                        ),
+                                                        items: _userData.portfolioImages.map((i) {
+                                                          return Builder(
+                                                              builder: (BuildContext context) {
+                                                                return Container(
+                                                                    width: MediaQuery.of(context)
+                                                                        .size
+                                                                        .width,
+                                                                    margin: EdgeInsets.symmetric(
+                                                                        horizontal: 5.0),
+                                                                    decoration: BoxDecoration(
+                                                                      borderRadius:
+                                                                      BorderRadius.circular(
+                                                                          10.0),
+                                                                    ),
+                                                                    child:
+                                                                    i.getWidget().center()
+                                                                        .center())
+                                                                    .onClick(() {
+                                                                  Navigator.push(
+                                                                      context,
+                                                                      MaterialWithModalsPageRoute(
+                                                                          builder: (context) =>
+                                                                              ImagePage(_userData
+                                                                                  .portfolioImages)));
+                                                                });
+                                                              });
+                                                        }).toList()
+                                                    ).center()
+                                                  ]
+                                              )
+                                          ).sizeW(Global.blockX * 90, Global.blockY * 25) :
+                                          Text("Пользователь еще не добавил фотографий")
+                                      ).paddingW(
+                                          top: Global.blockX * 3,
+                                          bottom: Global.blockX * 3),
+                                      Container(
+                                        alignment: Alignment.bottomLeft,
+                                        child: Text("Услуги", style: titleMediumStyle),
+                                      ).paddingW(left: Global.blockX * 3),
+                                      Container(
+                                          child: Column(
+                                              children: buildServiceList(
+                                                  _userData.services    // _masterData.services
+                                              )))
+                                          .paddingW(
+                                          top: Global.blockX * 3,
+                                          bottom: Global.blockX * 3)
+                                    ]
+                                  )
+                                ),
+                                Visibility(
+                                  visible: _userData.about.isNotEmpty || (_userData.isShowAddress && _userData.address.isNotEmpty && _userData.isRecorded),
                                   child: Column(
                                     children: [
                                       Container(
@@ -215,8 +224,11 @@ class UserProfileState extends State<UserProfile> {
                                         child: Text("О себе", style: titleMediumStyle),
                                       ).paddingW(left: Global.blockX * 3),
                                       Container(
-                                        child: Text(_userData.about,
-                                          style: profileDescriptionStyle,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                              Text(_userData.about)
+                                          ]
                                         ),
                                       ).paddingAll(Global.blockX * 3),
                                       Visibility(
@@ -227,7 +239,7 @@ class UserProfileState extends State<UserProfile> {
                                               children: <Widget>[
                                                 Container(
                                                     alignment: Alignment.bottomLeft,
-                                                    child: Text("Адресс ${_userData.address}" ?? "Адресс не указан")
+                                                    child: Text("${_userData.address}" ?? "Адресс не указан")
                                                 ),
                                                 // Icon(Icons.map, color: defaultColorAccent)
                                                 // .onClick(() async {
@@ -272,16 +284,19 @@ class UserProfileState extends State<UserProfile> {
                                       borderRadius: defaultCircleBorderRadius),
                                   child: Icon(Icons.message, color: Colors.white).center()
                               )
-                                  // .onClick(() => Navigator.push(
-                                  // context,
-                                  // MaterialWithModalsPageRoute(
-                                  //     builder: (context) {
-                                  //       return Correspondence(
-                                  //           conversions.getConversion(user.id, _userData.id));
-                                  //     }
-                                  // )))
-                          )
-                              .positionW(
+                                  .onClick(() async {
+                                    var conversion = await conversions.getConversion(user, _userData.id);
+                                    print("findConversion $conversion");
+                                    if(conversion == null) return;
+                                    Navigator.push(
+                                      context,
+                                      MaterialWithModalsPageRoute(
+                                          builder: (context) {
+                                            return Correspondence(conversion);
+                                          }
+                                      ));
+                                  })
+                          ).positionW(
                               Global.blockX * 10, Global.blockX * 5, null, null),
                           Visibility(
                               visible: _userData.isRecorded && _userData.isShowPhone,

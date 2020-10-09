@@ -390,7 +390,7 @@ class ProfilePreviewState extends State<ProfilePreview> {
                         MaterialWithModalsPageRoute(
                             builder: (context) =>
                                 ImagePage(
-                                    widget.data.portfolio.split(",").map((i) => Photo(i, PhotoSource.NETWORK))
+                                    widget.data.portfolio.split(",").map((i) => Photo(i, PhotoSource.NETWORK)).toList()
                                 )));
                   });
                 },

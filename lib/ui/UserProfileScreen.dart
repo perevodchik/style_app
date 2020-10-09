@@ -153,7 +153,7 @@ class ProfileState extends State<Profile> {
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
-                            ProfileSelectItem("Город", cities.byId(profile.city).name, () async {
+                            ProfileSelectItem("Город", cities.byId(profile.city)?.name ?? "", () async {
                               showModalBottomSheet(
                                   context: context,
                                   backgroundColor: Colors.transparent,
@@ -244,6 +244,8 @@ class ProfileState extends State<Profile> {
                                         profile.name = _nameController.text;
                                         profile.surname = _surnameController.text;
                                         profile.email = _emailController.text;
+                                        profile.address = _addressController.text;
+                                        profile.about = _aboutController.text;
                                       }
                                     },
                                     child: Text("Сохранить"),

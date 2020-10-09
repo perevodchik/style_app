@@ -41,6 +41,10 @@ class PortfolioRepository {
     if(r.statusCode == 200) {
       var b = jsonDecode(r.body);
       for(var i in b) {
+        print(i);
+        // var image = i["image"] as String;
+        // i["image"] = image.replaceAll("%7D", "").replaceAll("\}", "");
+        // print(i["image"]);
         var portfolioItem = PortfolioItem.fromJson(i);
         items.add(portfolioItem);
       }

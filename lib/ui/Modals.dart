@@ -907,6 +907,7 @@ class EditMasterServiceState extends State<EditMasterServiceModal> {
         ),
         child: ListView(
             shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

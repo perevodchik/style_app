@@ -99,7 +99,7 @@ class SketchData {
         height: json["height"],
         price: json["price"],
         description: json["description"] ?? "",
-        tags: json["tags"] ?? "",
+        tags: json["tags"]?.replaceAll(",", " ") ?? "",
         isColored: json["isColored"] ?? false,
         position: Position(
             json["position"]["id"],

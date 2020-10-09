@@ -11,9 +11,11 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/holders/CitiesHolder.dart';
 import 'package:style_app/holders/SketchesHolder.dart';
+import 'package:style_app/holders/UserHolder.dart';
 import 'package:style_app/model/MasterData.dart';
 import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/Sketch.dart';
+import 'package:style_app/providers/CitiesProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/providers/SketchesProvider.dart';
 import 'package:style_app/service/ProfileService.dart';
@@ -157,6 +159,7 @@ class SketchPageState extends State<SketchPage> {
 Widget build(BuildContext context) {
   final ProfileProvider provider = Provider.of<ProfileProvider>(context);
   final SketchesProvider sketches = Provider.of<SketchesProvider>(context);
+  final CitiesProvider cities = Provider.of<CitiesProvider>(context);
 
   return Scaffold(
       backgroundColor: Colors.white,
@@ -173,7 +176,7 @@ Widget build(BuildContext context) {
                 context,
                 MaterialWithModalsPageRoute(
                     builder: (context) =>
-                        NewOrderScreen(user, sketch.clone(), CitiesHolder.cityById(user.city)))
+                        NewOrderScreen(user, sketch.clone(), cities.byId(user.city)))
             );
           },
           elevation: 0,
@@ -276,7 +279,7 @@ Widget build(BuildContext context) {
                                 ),
                                 Text("Название", style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data.tags}").paddingAll(Global.blockY),
+                                  child: Text("${sketch.data.tags}", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
                                       color: defaultItemColor,
                                       borderRadius: defaultItemBorderRadius
@@ -284,7 +287,7 @@ Widget build(BuildContext context) {
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
                                 Text("Стиль", style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data.style.name ?? ""}").paddingAll(Global.blockY),
+                                  child: Text("${sketch.data.style.name ?? ""}", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
                                       color: defaultItemColor,
                                       borderRadius: defaultItemBorderRadius
@@ -292,7 +295,7 @@ Widget build(BuildContext context) {
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
                                 Text("Описание", style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data.description}").paddingAll(Global.blockY),
+                                  child: Text("${sketch.data.description}", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
                                       color: defaultItemColor,
                                       borderRadius: defaultItemBorderRadius
@@ -300,7 +303,7 @@ Widget build(BuildContext context) {
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
                                 Text("Рассположение татуировки", style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data?.position?.name ?? ""}").paddingAll(Global.blockY),
+                                  child: Text("${sketch.data?.position?.name ?? ""}", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
                                       color: defaultItemColor,
                                       borderRadius: defaultItemBorderRadius
@@ -308,30 +311,43 @@ Widget build(BuildContext context) {
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
                                 Text("Цвет татуировки", style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text(sketch.data.isColored ? "Цветная" : "Черно-белая").paddingAll(Global.blockY),
+                                  child: Text(sketch.data.isColored ? "Цветная" : "Черно-белая", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
                                       color: defaultItemColor,
                                       borderRadius: defaultItemBorderRadius
                                   ),
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
-                                Text("Размеры татуировки", style: titleSmallStyle).marginW(left: margin5, right: margin5),
-                                Container(
-                                  child: ListView(
-                                    physics: NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      children: [
-                                        Text("Ширина ${sketch.data.width} см"),
-                                        Text("Высота ${sketch.data.height} см")
-                                      ]
-                                  ).paddingAll(Global.blockY),
-                                  decoration: BoxDecoration(
-                                      color: defaultItemColor,
-                                      borderRadius: defaultItemBorderRadius
-                                  ),
-                                ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
+                                Visibility(
+                                  visible: sketch.data.width > 0 || sketch.data.height > 0,
+                                  child: Column(
+                                    children: [
+                                      Text("Размеры татуировки", style: titleSmallStyle).marginW(left: margin5, right: margin5),
+                                      Container(
+                                        child: ListView(
+                                            physics: NeverScrollableScrollPhysics(),
+                                            shrinkWrap: true,
+                                            children: [
+                                              Visibility(
+                                                  visible: sketch.data.width > 0,
+                                                  child: Text("Ширина ${sketch.data.width} см")
+                                              ),
+                                              Visibility(
+                                                  visible: sketch.data.height > 0,
+                                                  child: Text("Высота ${sketch.data.height} см")
+                                              )
+                                            ]
+                                        ).paddingAll(Global.blockY),
+                                        decoration: BoxDecoration(
+                                            color: defaultItemColor,
+                                            borderRadius: defaultItemBorderRadius
+                                        ),
+                                      ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2)
+                                    ]
+                                  )
+                                ),
                                 Text("Цена", style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data.price}").paddingAll(Global.blockY),
+                                  child: Text("${sketch.data.price}", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
                                       color: defaultItemColor,
                                       borderRadius: defaultItemBorderRadius
@@ -529,7 +545,6 @@ class MasterSketchesState extends State<MasterSketchesPage> {
   Widget build(BuildContext context) {
     final ProfileProvider provider = Provider.of<ProfileProvider>(context);
     final SketchesProvider sketches = Provider.of<SketchesProvider>(context);
-
     SketchesHolder.memoizer.runOnce(() => loadListAsync(provider, sketches));
 
     return Scaffold(
@@ -670,6 +685,7 @@ class CreateSketchState extends State<CreateSketchPage> {
   Widget build(BuildContext context) {
     _sketchData.isColored = true;
     final ProfileProvider provider = Provider.of<ProfileProvider>(context);
+    final SketchesProvider sketches = Provider.of<SketchesProvider>(context);
     return Scaffold(
       appBar: null,
       backgroundColor: Colors.white,
@@ -679,13 +695,13 @@ class CreateSketchState extends State<CreateSketchPage> {
           _sketchData.tags = _tagsController.text;
           _sketchData.description = _descriptionController.text;
           _sketchData.price = _priceController.text == null || _priceController.text.isEmpty ?
-          0 :int.parse(_priceController.text);
+          null :int.parse(_priceController.text);
           _sketchData.width = _widthController.text == null || _widthController.text.isEmpty ?
-          0 :int.parse(_widthController.text);
+          null :int.parse(_widthController.text);
           _sketchData.height = _heightController.text == null || _heightController.text.isEmpty ?
-          0 :int.parse(_heightController.text);
+          null :int.parse(_heightController.text);
           var sketch = Sketch(
-            Random().nextInt(99999),
+            -1,
             provider.id,
             "",
             _sketchData,
@@ -700,7 +716,6 @@ class CreateSketchState extends State<CreateSketchPage> {
               builder: (c) {
                 return WillPopScope(
                   onWillPop: () {
-                    // return Future<bool>.value(true);
                     return Future<bool>.value(canHideModal);
                   },
                   child: Container(
@@ -723,9 +738,10 @@ class CreateSketchState extends State<CreateSketchPage> {
           var s = await SketchesRepository.get().createSketch(provider, sketch);
           var i = await SketchesRepository.get().uploadSketchImage(provider, s.id, image);
           s.photos.add(Photo(i, PhotoSource.NETWORK));
-            canHideModal = true;
-            Navigator.pop(context);
-          // });
+          sketches.addSketchPreview(SketchPreview(sketch.id, sketch.masterId, sketch.data.price, sketch?.photos?.first?.path ?? ""));
+          canHideModal = true;
+          Navigator.pop(context);
+          Navigator.pop(context);
         },
         child: Text("Создать", style: smallWhiteStyle)
             .marginW(left: margin5, right: margin5),

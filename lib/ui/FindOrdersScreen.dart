@@ -78,7 +78,11 @@ class FindOrdersState extends State<FindOrdersScreen> {
               }
             })
           ],
-        ).marginW(left: Global.blockX * 5, right: Global.blockX * 5, bottom: Global.blockY),
+        ).marginW(
+            left: Global.blockX * 5,
+            top: Global.blockY * 2,
+            right: Global.blockX * 5,
+            bottom: Global.blockY),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {

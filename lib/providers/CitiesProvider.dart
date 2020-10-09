@@ -10,7 +10,7 @@ class CitiesProvider extends ChangeNotifier {
   }
 
   City byId(int id) {
-    return cities.firstWhere((city) => city.id == id, orElse: () => cities.first);
+    return cities.firstWhere((city) => city.id == id, orElse: () => null);
   }
 
   void add(City city) {

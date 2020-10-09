@@ -68,6 +68,10 @@ class OrdersProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void tick() {
+    notifyListeners();
+  }
+
   void toggleCity(City city) {
     if(_cities.contains(city))
       _cities.remove(city);

@@ -104,14 +104,14 @@ class OrdersService {
         b["client"]["id"],
         b["client"]["name"],
         b["client"]["surname"],
-        Photo(b["client"]["avatar"], PhotoSource.NETWORK)
+        b["client"]["avatar"] == null ? null : Photo(b["client"]["avatar"], PhotoSource.NETWORK)
       );
       if(b["master"] != null)
         masterData = UserShort(
             b["master"]["id"],
             b["master"]["name"],
             b["master"]["surname"],
-            Photo(b["master"]["avatar"], PhotoSource.NETWORK)
+            b["master"]["avatar"] == null ? null : Photo(b["master"]["avatar"], PhotoSource.NETWORK)
         );
       if(b["sketchData"] != null)
         sketchData = SketchData.fromJson(b["sketchData"]);

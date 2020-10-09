@@ -115,15 +115,15 @@ class CorrespondenceState extends State<Correspondence> {
                 children: <Widget>[
                   Row(children: <Widget>[
                     Container(
-                        width: Global.blockX * 8,
-                        height: Global.blockX * 8,
+                      width: Global.blockX * 8,
+                      height: Global.blockX * 8,
                         child: (widget.conversion.userShort.avatar == null ? Text(
-                            "${widget.conversion.userShort.name[0]} ${widget.conversion.userShort.surname[0]}",
-                            style: titleBigBlueStyle) : widget.conversion.userShort.avatar.getWidget()).center(),
+                            "${widget.conversion.userShort.name[0]}${widget.conversion.userShort.surname[0]}",
+                            style: titleExtraMediumBlueStyle) : widget.conversion.userShort.avatar.getWidget()).center(),
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius:
-                            BorderRadius.circular(Global.blockX * 10)))
+                            defaultCircleBorderRadius))
                         .marginW(left: Global.blockY, right: Global.blockY),
                       Text("${widget.conversion.userShort.name} ${widget.conversion.userShort.surname}", style: titleSmallBlueStyle)
                     ]
@@ -157,7 +157,7 @@ class CorrespondenceState extends State<Correspondence> {
                 },
                 child: Container(
                   child: (widget.conversion.messages.isEmpty ?
-                    CircularProgressIndicator().center() :
+                    Column() :
                     ListView.builder(
                         itemCount: widget.conversion.messages.length,
                         reverse: true,

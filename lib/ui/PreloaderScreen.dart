@@ -37,12 +37,12 @@ class PreloaderScreenState extends State<PreloaderScreen> {
 
     memoizer.runOnce(() async {
       var s = await SharedPreferences.getInstance();
+      await CitiesService.get().getCities(cities);
+      await ServicesRepository.get().getAllCategoriesAndServices(services);
       if(s.containsKey("token") && s.containsKey("type")) {
         var token = s.getString("token");
         var type = s.getInt("type");
         var user = await UserService.get().getCurrentUserByTokenAndRole(token, type);
-        await CitiesService.get().getCities(cities);
-        await ServicesRepository.get().getAllCategoriesAndServices(services);
 
         if(user != null) {
           TempData.user = user;

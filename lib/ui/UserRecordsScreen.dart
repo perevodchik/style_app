@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:style_app/holders/CitiesHolder.dart';
 import 'package:style_app/holders/UserOrdersHolder.dart';
 import 'package:style_app/model/Record.dart';
+import 'package:style_app/providers/CitiesProvider.dart';
 import 'package:style_app/providers/OrderProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/service/OrdersService.dart';
@@ -34,6 +35,7 @@ class RecordsState extends State<Records>{
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
     final OrderProvider orders = Provider.of<OrderProvider>(context);
+    final CitiesProvider cities = Provider.of<CitiesProvider>(context);
 
     UserOrdersHolder.memoizer.runOnce(() async {
       OrdersService.get().loadUserOrders(profile).then((value) => orders.previews = value);
@@ -46,7 +48,7 @@ class RecordsState extends State<Records>{
         visible: profile.profileType == 0,
         child: RaisedButton(
             onPressed: () => Navigator.push(context, MaterialWithModalsPageRoute(
-                builder: (context) => NewOrderScreen(null ,null, CitiesHolder.cityById(profile.city))
+                builder: (context) => NewOrderScreen(null ,null, cities.byId(profile.city))
             )),
             color: Colors.blueAccent,
             elevation: 0,
@@ -123,7 +125,7 @@ class UserOrderPreview extends StatelessWidget {
           Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text("Цена ${preview.price}", style: serviceSubtitleStyle)
+                Text(preview.price == null || preview.price < 1 ? "Цена не указана" : "Цена ${preview.price}", style: serviceSubtitleStyle)
               ]
           ),
           Row(

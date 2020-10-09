@@ -6,9 +6,15 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:style_app/model/Comment.dart';
+import 'package:style_app/model/MasterData.dart';
+import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/Record.dart';
 import 'package:style_app/model/Sentence.dart';
+import 'package:style_app/providers/ConversionProvider.dart';
+import 'package:style_app/providers/RecordProvider.dart';
 import 'package:style_app/service/CommentsRepository.dart';
+import 'package:style_app/service/ConversionsRepository.dart';
 import 'package:style_app/service/OrdersService.dart';
 import 'package:style_app/service/SentenceRepository.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
@@ -53,6 +59,7 @@ class OrderPageState extends State<OrderPage> {
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
+    final ConversionProvider conversions = Provider.of<ConversionProvider>(context);
 
     memozier.runOnce(() => OrdersService.get().orderById(profile, widget._orderId).then((value) {
       setState(() {
@@ -101,17 +108,23 @@ class OrderPageState extends State<OrderPage> {
                                             1
                                         );
                                         if(isUpdate) {
-                                          print("norm");
                                           Navigator.pop(context);
                                           setState(() {
                                             order.status = 1;
                                           });
-                                          showModalBottomSheet(
+                                          var r = await showModalBottomSheet(
                                               backgroundColor: Colors.transparent,
                                               context: context,
                                               isScrollControlled: true,
                                               builder: (context) => ResponseModal(
                                                   order.master.id, order.id));
+                                          if(r != null) {
+                                            var fullComment = CommentFull(r.id, profile.id, order.master.id,
+                                                profile.name, profile.surname, profile.avatar,
+                                                r.message, r.rate, r.date);
+                                            setState(() => order.clientComment = fullComment);
+                                            profile.tick();
+                                          }
                                         }
                                       },
                                       elevation: 0,
@@ -176,6 +189,8 @@ class OrderPageState extends State<OrderPage> {
                                                 2
                                             );
                                             if(isUpdate) {
+                                              var list = await ConversionsRepository.get().getConversions(profile);
+                                              conversions.conversions = list;
                                               setState(() {
                                                 order.status = 2;
                                               });
@@ -198,14 +213,17 @@ class OrderPageState extends State<OrderPage> {
                                     children: <Widget>[
                                       Text("Добавить предложение"),
                                       RaisedButton(
-                                          onPressed: () {
+                                          onPressed: () async {
                                             Navigator.pop(context);
-                                            showModalBottomSheet(
+                                            var r = await showModalBottomSheet(
                                                 backgroundColor: Colors.transparent,
                                                 context: context,
                                                 isScrollControlled: true,
                                                 builder: (context) => SentenceModal(
                                                     order));
+                                            if(r != null)
+                                              if(r)
+                                                profile.tick();
                                           },
                                           elevation: 0,
                                           shape: RoundedRectangleBorder(
@@ -332,7 +350,7 @@ class OrderPageState extends State<OrderPage> {
                                   decoration: BoxDecoration(
                                       color: defaultItemColor,
                                       borderRadius: BorderRadius.all(Radius.circular(10))),
-                                  child: Text("${order.description}", style: titleSmallStyle)
+                                  child: Text("${order.description}", style: textStyle)
                                       .paddingAll(Global.blockY)
                                 ).marginW(
                                     left: margin5,
@@ -353,7 +371,8 @@ class OrderPageState extends State<OrderPage> {
                                       ),
                                       child: Row(
                                           children: [
-                                            Text(order.price == null || order.price <= 0 ? "Не указана" : "${order.price} грн.")
+                                            Text(order.price == null || order.price <= 0 ? "Не указана" : "${order.price} грн."
+                                            , style: textStyle,).paddingAll(Global.blockY)
                                           ]
                                       )
                                   )
@@ -375,7 +394,7 @@ class OrderPageState extends State<OrderPage> {
                                           ),
                                           child: Row(
                                               children: [
-                                                Text(order?.city?.name ?? "Не указан")
+                                                Text(order?.city?.name ?? "Не указан", style: textStyle).paddingAll(Global.blockY)
                                               ]
                                           )
                                       )
@@ -432,36 +451,13 @@ class OrderPageState extends State<OrderPage> {
                                               .map((s) => s == null
                                               ? Container()
                                               : Row(children: <Widget>[
-                                            Text(
-                                              "$s",
-                                              textAlign: TextAlign.start,
-                                            )
+                                            Text("$s").paddingW(left: Global.blockX * 2)
                                           ]))
                                               .toList()
-                                      )
+                                      ).paddingW(top: Global.blockX * 2, bottom: Global.blockX * 2)
                                     )
                                   ]
                                 )
-                                // ExpansionTile(
-                                //   title:
-                                //
-                                //   children: <Widget>[
-                                //     Column(
-                                //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                //         crossAxisAlignment: CrossAxisAlignment.start,
-                                //         children: order.services
-                                //             .map((s) => s == null
-                                //             ? Container()
-                                //             : Row(children: <Widget>[
-                                //           Text(
-                                //             "$s",
-                                //             textAlign: TextAlign.start,
-                                //           )
-                                //         ]))
-                                //             .toList())
-                                //         .marginW(top: Global.blockX, bottom: Global.blockX)
-                                //   ],
-                                // ),
                               ).marginW(
                                   left: margin5,
                                   right: margin5),
@@ -544,11 +540,10 @@ class OrderPageState extends State<OrderPage> {
                                               color: defaultItemColor,
                                               borderRadius:
                                               BorderRadius.all(Radius.circular(10))),
-                                          child: Text("Ставок еще нет").center(),
+                                          child: Text("Ставок еще нет", style: textStyle).center(),
                                         ) : Column(
                                             children: order.sentences
                                                 .map((s) {
-                                              print("b ${s.toString()}");
                                               return SentencePreview(order, s)
                                                   .marginW(
                                                   top: Global.blockX,
@@ -584,9 +579,13 @@ class OrderPageState extends State<OrderPage> {
                                                 builder: (context) => ResponseModal(
                                                     order.master.id, order.id));
                                             if(r != null) {
+                                              var fullComment = CommentFull(r.id, profile.id, order.client.id,
+                                                  profile.name, profile.surname, profile.avatar,
+                                                  r.message, r.rate, r.date);
                                               setState(() {
-                                                order.clientComment = r;
+                                                order.clientComment = fullComment;
                                               });
+                                              profile.tick();
                                           }
                                         },
                                         elevation: 0,
@@ -619,9 +618,13 @@ class OrderPageState extends State<OrderPage> {
                                                 builder: (context) => ResponseModal(
                                                     order.client.id, order.id));
                                             if(r != null) {
+                                              var fullComment = CommentFull(r.id, profile.id, order.master.id,
+                                              profile.name, profile.surname, profile.avatar,
+                                              r.message, r.rate, r.date);
                                               setState(() {
-                                                order.clientComment = r;
+                                                order.masterComment = fullComment;
                                               });
+                                              profile.tick();
                                             }
                                           },
                                           elevation: 0,
@@ -695,7 +698,7 @@ class SentencePreview extends StatelessWidget {
                       })
                     ]
                   ),
-                  Text("Комментарии(${s.commentsCount})", style: titleSmallBlueStyle)
+                  Text("Комментарии(${s.commentsCount == null ? 0 : s.commentsCount})", style: titleSmallBlueStyle)
                       .onClick(() => Navigator.push(context,
                       MaterialWithModalsPageRoute(
                           builder: (c) => SentenceCommentsPage(order.status, s.id)
@@ -706,14 +709,14 @@ class SentencePreview extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Text(s.price != null ? "${s.price} грн" : "",
+                  Text(s.price != null || s.price > 0 ? "${s.price} грн" : "Стоимость не указана",
                       style: commentHintStyle),
                   Text("${s.createDate.getFullDate()}", style: commentHintStyle)
                 ],
               ).paddingW(
                   top: Global.blockX,
                   bottom: Global.blockY),
-              Text("${s.text}")
+              Text("${s.text != null ? s.text : ""}")
             ]))
     .onClick(() async {
       if(profile.id != order.client.id) return;
@@ -769,6 +772,13 @@ class SentencePreview extends StatelessWidget {
                                   2
                               );
                               if(isUpdate) {
+                                order.master = UserShort(
+                                  s.masterId,
+                                  s.masterName,
+                                  s.masterSurname,
+                                  s.masterAvatar != null && s.masterAvatar.length > 0 ? Photo(s.masterAvatar, PhotoSource.NETWORK) : null
+                                );
+                                profile.tick();
                                 Navigator.pop(context, true);
                               }
                             },
@@ -853,17 +863,18 @@ class SentenceModalState extends State<SentenceModal> {
               .marginW(left: margin5, right: margin5),
           RaisedButton(
             onPressed: () async {
-              var price;
+              int price;
               try {
                 price = int.parse(_sentencePriceController.text);
               } catch (e) {
+                price = null;
                 print(e.toString());
               }
               var message = _sentenceTextController.text;
               var sentence = await SentenceRepository.get().createSentence(profile, widget._order.id, price, message);
               if(sentence != null) {
                 widget._order.sentences.add(sentence);
-                Navigator.pop(context);
+                Navigator.pop(context, true);
               }
             },
               child: Text("Отправить", style: smallWhiteStyle),
@@ -910,6 +921,7 @@ class ResponseModalState extends State<ResponseModal> {
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
     return Container(
+        padding: MediaQuery.of(context).viewInsets,
         decoration: BoxDecoration(
             color: Colors.white, borderRadius: defaultModalRadius),
         child: ListView(
@@ -951,7 +963,7 @@ class ResponseModalState extends State<ResponseModal> {
                       onPressed: () async {
                         var r = await CommentsRepository.get().createComment(profile, widget.targetId, widget.orderId, _rate, _commentController.text);
                         print("$r");
-                        Navigator.pop(context);
+                        Navigator.pop(context, r);
                       },
                       elevation: 0,
                       shape: RoundedRectangleBorder(

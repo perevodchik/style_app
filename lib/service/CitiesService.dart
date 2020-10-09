@@ -20,7 +20,7 @@ class CitiesService {
     var cities = <City> [];
     var r = await http.get("$url/cities/all",
         headers: HeadersUtil.getHeaders());
-    print("[${r.statusCode}] [${r.body}]");
+    print("cities [${r.statusCode}] [${r.body}]");
     if (r.statusCode == 200) {
       final decodeData = utf8.decode(r.bodyBytes);
       var b = jsonDecode(decodeData);

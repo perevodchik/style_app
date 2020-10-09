@@ -96,14 +96,12 @@ class UserService {
       "phone": user.phone,
       "name": user.name,
       "surname": user.surname,
-      "email": user.email,
-      "role": role,
-      "address": "",
-      "avatar": ""
+      "role": role
     });
+    print(body);
     var r = await http.post("$url/users/create",
     headers: HeadersUtil.getHeaders(), body: body);
-    print("[${r.statusCode}] [${r.body}]");
+    print("register [${r.statusCode}] [${r.body}]");
     if(r.statusCode == 200) {
       final decodeData = utf8.decode(r.bodyBytes);
       var b = jsonDecode(decodeData);
@@ -164,7 +162,7 @@ class UserService {
   Future<UserData> getFullDataById(ProfileProvider provider, int masterId) async {
     var r = await http.get("$url/users/full/$masterId",
         headers: HeadersUtil.getAuthorizedHeaders(provider.token));
-    print("[${r.statusCode}] [${r.body}]");
+    print("22[${r.statusCode}] [${r.body}]");
     if(r.statusCode == 200) {
       final decodeData = utf8.decode(r.bodyBytes);
       var b = jsonDecode(decodeData);

@@ -46,4 +46,10 @@ class Category {
   String toString() {
     return 'Category{id: $id, name: $name, services: $services, icon: $icon}';
   }
+
+  bool containsMasterService() {
+    for(var s in services)
+      if(s.wrapper != null) return true;
+    return false;
+  }
 }

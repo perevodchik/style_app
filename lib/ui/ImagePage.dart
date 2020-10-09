@@ -33,13 +33,13 @@ class ImagePage extends StatelessWidget {
           Expanded(
             child: CarouselSlider(
               options: CarouselOptions(
+                height: Global.blockY * 75,
                 enableInfiniteScroll: false
               ),
               items: images.map((i) {
                 return Builder(
                   builder: (BuildContext context) {
                     return Container(
-                        width: MediaQuery.of(context).size.width,
                         margin: EdgeInsets.symmetric(horizontal: 5.0),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10.0),

@@ -2,7 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:style_app/utils/Global.dart';
 
-const String url = "http://10.0.2.2:8089";
+// const String url = "http://10.0.2.2:8089";
+// const String socketUrl = "ws://10.0.2.2:8089";
+const String socketUrl = "ws://31.42.190.187:8089";
+const String url = "http://31.42.190.187:8089";
 
 final double margin5 = Global.blockX * 5;
 const BorderRadius defaultItemBorderRadius = BorderRadius.all(Radius.circular(10));

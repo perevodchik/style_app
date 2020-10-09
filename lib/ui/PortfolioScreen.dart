@@ -20,10 +20,12 @@ class PortfolioScreen extends StatefulWidget {
 
 class PortfolioScreenState extends State<PortfolioScreen> {
   var _items = <PortfolioItem> [];
-  var _images = <Photo> [];
+  // var _images = <Photo> [];
+
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
+    print("build $_items}");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: null,
@@ -40,9 +42,8 @@ class PortfolioScreenState extends State<PortfolioScreen> {
             return;
           var r = await PortfolioRepository.get().createMasterPortfolioItem(profile, pickedFile);
           if(r != null)
-            setState(() {
               _items.add(r);
-            });
+          profile.tick();
         })
       ),
       body: Column(
@@ -53,7 +54,7 @@ class PortfolioScreenState extends State<PortfolioScreen> {
               Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                 Navigator.pop(context);
               }),
-              Text("Ваше портфолио", style: titleStyle),
+              Text("Ваши работы", style: titleStyle),
               // Text("добавить", style: titleSmallBlueStyle),
               Icon(Icons.arrow_upward, size: 20, color: Colors.white)
             ],
@@ -66,11 +67,9 @@ class PortfolioScreenState extends State<PortfolioScreen> {
                 print("[${s.connectionState}] [${s.hasData}] [${s.hasError}] [${s.data}] [${s.error}]");
                 if(s.connectionState == ConnectionState.done && s.hasData && !s.hasError) {
                     var data = s.data as List<PortfolioItem>;
-                    var images = data.map<Photo>((i) => Photo(i.image, PhotoSource.NETWORK)).toList();
+                    var images = data.map<Photo>((i) => i.image).toList();
                     _items.clear();
                     _items.addAll(data);
-                    _images.clear();
-                    _images.addAll(images);
                     return GridView.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
                         itemCount: s.data.length,
@@ -80,7 +79,7 @@ class PortfolioScreenState extends State<PortfolioScreen> {
                               context,
                               MaterialWithModalsPageRoute(
                                   builder: (context) =>
-                                      ImagePage(_images)
+                                      ImagePage(images)
                               )
                           )
                           );
@@ -111,7 +110,7 @@ class PortfolioImagePreview extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Image.network("$url/images/${portfolio.image}", scale: 0.5).center(),
+          portfolio.image.getWidget().center(),
           Positioned(
             top: 0, right: 0,
             child: Icon(Icons.close, color: defaultColorAccent, size: 36).onClick(() async {

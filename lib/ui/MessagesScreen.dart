@@ -79,9 +79,11 @@ class MessagesState extends State<Messages> {
             ],
           ),
         ),
-        Container(
-          child: _isFirst ? screens[0] : screens[1],
-        ).sizeW(Global.width, Global.blockY * 73)
+        Expanded(
+          child: Container(
+            child: _isFirst ? screens[0] : screens[1],
+          )
+        )
       ],
     ).background(Colors.white);
   }
@@ -99,7 +101,6 @@ class InboxState extends State<Inbox> {
   Widget build(BuildContext context) {
     final ConversionProvider conversions = Provider.of<ConversionProvider>(context);
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
-
     ConversionsHolder.memoizer.runOnce(() async {
       var list = await ConversionsRepository.get().getConversions(profile);
       conversions.conversions = list;

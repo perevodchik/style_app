@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -169,7 +166,7 @@ class AuthModalState extends State<AuthModal> {
                       context: context,
                       backgroundColor: Colors.transparent,
                       isScrollControlled: true,
-                      builder: (context) => SmsCodeModal(false)
+                      builder: (context) => SmsCodeModal()
                   );
                 } else setState(() {
                   isError = true;
@@ -190,8 +187,8 @@ class AuthModalState extends State<AuthModal> {
 }
 
 class SmsCodeModal extends StatefulWidget {
-  final bool isRegisterMode;
-  SmsCodeModal(this.isRegisterMode);
+  // final bool isRegisterMode;
+  SmsCodeModal();
   @override
   State<StatefulWidget> createState() => SmsCodeModalState();
 }
@@ -252,62 +249,39 @@ class SmsCodeModalState extends State<SmsCodeModal> {
                   LinearProgressIndicator()
                       .marginW(top: Global.blockY * 3, bottom: Global.blockY * 2) :
                   RaisedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       setState(() {
                         isInProcess = true;
                         isError = false;
                       });
-                      Timer(Duration(seconds: 3), () async {
-                        if(_smsCodeController.text.isEmpty)
+                      if(_smsCodeController.text.isEmpty)
+                        setState(() {
+                          isError = true;
+                          isInProcess = false;
+                        });
+                      else {
+                        var user = await UserService.get().auth(profile.phone,
+                            _smsCodeController.text, profile.profileType);
+                        if(user.id != -1) {
+                          var s = await SharedPreferences.getInstance();
+                          TempData.user = user;
+                          profile.set(user);
+                          s.setInt("type", profile.profileType);
+                          s.setString("token", profile.token);
+                          Navigator.pop(context);
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      Main()
+                              )
+                          );
+                        } else
                           setState(() {
                             isError = true;
                             isInProcess = false;
                           });
-                        else {
-                          var user;
-                          print("isRegisterMode = ${widget.isRegisterMode}");
-                          if(!widget.isRegisterMode) {
-                            user = await UserService.get().auth(profile.phone,
-                                _smsCodeController.text, profile.profileType);
-                          }
-                          else {
-                            user = await UserService.get().register(UserData(
-                                -1,
-                                profile.profileType,
-                                profile.city,
-                                0,
-                                0.0,
-                                profile.phone,
-                                "",
-                                profile.name,
-                                profile.surname,
-                                "",
-                                "",
-                                profile.email,
-                                true, true, true, false,
-                                [], [], []), profile.profileType);
-                          }
-                          if(user != null) {
-                            var s = await SharedPreferences.getInstance();
-                            TempData.user = user;
-                            profile.set(user);
-                            s.setInt("type", profile.profileType);
-                            s.setString("token", profile.token);
-                            Navigator.pop(context);
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        Main()
-                                )
-                            );
-                          } else
-                            setState(() {
-                              isError = true;
-                              isInProcess = false;
-                            });
-                        }
-                      });
+                      }
                     },
                     shape: RoundedRectangleBorder(
                       borderRadius: defaultItemBorderRadius,
@@ -366,11 +340,12 @@ class RegisterPageState extends State<RegisterPage> {
         floatingActionButton: isInProcess ?
         LinearProgressIndicator() :
         RaisedButton(
-          onPressed: () {
-            if(_phoneController.text.isEmpty ||
-            _nameController.text.isEmpty ||
-            _surnameController.text.isEmpty ||
-            profile.city == null) {
+          elevation: 0,
+          onPressed: () async {
+            if (_phoneController.text.isEmpty ||
+                _nameController.text.isEmpty ||
+                _surnameController.text.isEmpty ||
+                profile.city == null) {
               setState(() {
                 isEmptyFields = true;
               });
@@ -381,23 +356,53 @@ class RegisterPageState extends State<RegisterPage> {
                 isError = false;
                 isInProcess = true;
               });
-              Timer(Duration(seconds: 2), () {
-                var e = Random().nextBool();
+              var isUserExist = await UserService.get().isExist(
+                  _phoneController.text.replaceAll(" ", ""),
+                  profile.profileType);
+              if (!isUserExist) {
                 setState(() {
-                  isError = e;
+                  isEmptyFields = false;
+                  isError = false;
                   isInProcess = false;
                 });
-                if(!e)
-                  profile.phone = _phoneController.text;
-                  profile.name = _nameController.text;
-                  profile.surname = _surnameController.text;
-                  showModalBottomSheet(
-                      backgroundColor: Colors.transparent,
-                      context: context,
-                      builder:
-                          (context) => SmsCodeModal(true)
-                  );
-              });
+                await UserService.get().register(UserData(
+                    -1,
+                    profile.profileType,
+                    profile.city,
+                    0,
+                    0.0,
+                    _phoneController.text,
+                    "",
+                    _nameController.text,
+                    _surnameController.text,
+                    "",
+                    "",
+                    profile.email,
+                    true,
+                    true,
+                    true,
+                    false,
+                    [],
+                    [],
+                    []), profile.profileType);
+                profile.phone = _phoneController.text
+                    .replaceAll(" ", "");
+                profile.name = _nameController.text
+                    .replaceAll(" ", "");
+                profile.surname = _surnameController.text
+                    .replaceAll(" ", "");
+                showModalBottomSheet(
+                    backgroundColor: Colors.transparent,
+                    context: context,
+                    builder: (context) => SmsCodeModal()
+                );
+              } else {
+                setState(() {
+                  isEmptyFields = false;
+                  isError = true;
+                  isInProcess = false;
+                });
+              }
             }
           },
           color: defaultColorAccent,
@@ -511,23 +516,37 @@ class RegisterPageState extends State<RegisterPage> {
                       child: Text("Поле должно быть заполнено", style: errorStyle)
                   )
                 ]
+            ).marginW(left: margin5, right: margin5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Город", style: titleMediumStyle),
+                Text("выбрать", style: titleMediumBlueStyle)
+                    .onClick(() async {
+                  await CitiesService.get().getCities(cities);
+                  showModalBottomSheet(
+                      backgroundColor: Colors.transparent,
+                      context: context,
+                      builder: (c) => SelectCityModal());
+                })
+              ]
             )
-                .marginW(left: margin5, right: margin5),
-            Text("Город", style: titleMediumStyle)
                 .marginW(left: margin5, top: Global.blockY * 2, right: margin5),
             Container(
-              child: profile.city == null ?
-              Text("Выберите город", style: titleSmallBlueStyle)
-                  : Text(cities.byId(profile.city).name, style: titleSmallBlueStyle)
-            )
-            .onClick(() async {
-              await CitiesService.get().getCities(cities);
-              showModalBottomSheet(
-                  backgroundColor: Colors.transparent,
-                  context: context,
-                  builder: (c) => SelectCityModal());
-            })
-                .marginW(left: margin5, right: margin5),
+                padding: EdgeInsets.only(left: Global.blockX * 2, top: Global.blockY * 2, bottom: Global.blockY * 2),
+                decoration: BoxDecoration(
+                    borderRadius: defaultItemBorderRadius,
+                    color: defaultItemColor
+                ),
+                child:Row(
+                  mainAxisSize: MainAxisSize.max,
+                    children: [
+                      profile.city == null ?
+                      Text("Выберите город")
+                          : Text(cities.byId(profile.city)?.name ?? "Город")
+                    ]
+                )
+            ).marginW(left: margin5, right: margin5),
             Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

@@ -19,7 +19,7 @@ class ConversionsRepository {
 
   Future<List<Conversion>> getConversions(ProfileProvider profile) async {
     var conversions = <Conversion> [];
-    var r = await http.get("http://10.0.2.2:8089/conversions/get",
+    var r = await http.get("$url/conversions/get",
         headers: HeadersUtil.getAuthorizedHeaders(profile.token)
     );
     print("[${r.statusCode}] [${r.body}]");
@@ -28,14 +28,14 @@ class ConversionsRepository {
       var b = jsonDecode(decodeData);
       for(var c in b) {
         var conversion = Conversion(
-          c["id"],
-          c["lastReadMessageId"],
-          c["message"] != null ?
-          Message.fromJson(c["message"]) : Message(-1, c["id"], -1, "", DateTime.now()),
-          UserShort.fromJson(c["user"]),
-          true,
-          c["canSendMessage"],
-          []
+            c["id"],
+            c["lastReadMessageId"],
+            c["message"] != null ?
+            Message.fromJson(c["message"]) : Message(-1, c["id"], -1, "", DateTime.now()),
+            UserShort.fromJson(c["user"]),
+            true,
+            c["canSendMessage"],
+            []
         );
         conversion.isRead = conversion.lastReadMessageId >= conversion.lastMessage.id;
         print(conversion.toString());
@@ -48,20 +48,51 @@ class ConversionsRepository {
     return conversions;
   }
 
+  Future<Conversion> getConversion(ProfileProvider profile, int userId) async {
+    var body = jsonEncode({
+      "userId": userId
+    });
+    var r = await http.post("$url/conversions/conversion",
+        headers: HeadersUtil.getAuthorizedHeaders(profile.token),
+        body: body
+    );
+    print("[${r.statusCode}] [${r.body}]");
+    if(r.statusCode == 200) {
+      final decodeData = utf8.decode(r.bodyBytes);
+      var b = jsonDecode(decodeData);
+      var conversion = Conversion(
+          b["id"],
+          b["lastReadMessageId"],
+          b["message"] != null ?
+          Message.fromJson(b["message"]) : Message(-1, b["id"], -1, "", DateTime.now()),
+          UserShort.fromJson(b["user"]),
+          true,
+          b["canSendMessage"],
+          []
+      );
+      conversion.isRead = conversion.lastReadMessageId >= conversion.lastMessage.id;
+      print(conversion.toString());
+      return conversion;
+    }
+    return null;
+  }
+
   Future<Map<String, dynamic>> getMessagesByConversion(ProfileProvider profile, int conversionId, int page, int limit) async {
     var messages = <Message> [];
     var data = <String, dynamic> {};
-    var r = await http.get("http://10.0.2.2:8089/conversions/$conversionId?page=$page&limit=$limit", headers: HeadersUtil.getAuthorizedHeaders(profile.token));
+    var r = await http.get("$url/conversions/$conversionId?page=$page&limit=$limit", headers: HeadersUtil.getAuthorizedHeaders(profile.token));
     print("[${r.statusCode}] [${r.body}]");
     if(r.statusCode == 200) {
       final decodeData = utf8.decode(r.bodyBytes);
       var b = jsonDecode(decodeData)["map"];
       data["canSendMessage"] = b["canSendMessages"];
       print(b["canSendMessages"]);
-      print(b["messages"]["list"].length);
-      for(var m in b["messages"]["list"]) {
-        var message = Message.fromJson(m);
-        messages.add(message);
+      if(b["messages"]["list"] != null) {
+        print(b["messages"]["list"].length);
+        for(var m in b["messages"]["list"]) {
+          var message = Message.fromJson(m);
+          messages.add(message);
+        }
       }
       data["messages"] = messages;
     }

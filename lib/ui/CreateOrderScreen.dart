@@ -99,9 +99,6 @@ class NewOrderScreenState extends State<NewOrderScreen> {
     final OrderProvider orders = Provider.of<OrderProvider>(context);
     final ServicesProvider services = Provider.of<ServicesProvider>(context);
 
-    print("city $city");
-    print("cities => ${CitiesHolder.cities}");
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: null,
@@ -125,12 +122,12 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                 _priceController.text == null || _priceController.text.isEmpty ? null :
                 int.parse(_priceController.text),
                 0,
-                city.id ?? null,
+                city?.id ?? profile.city,
                 _nameController.text,
                 _descriptionController.text,
                 servicesList,
                 _images,
-                false,
+                widget._sketch != null || widget._master != null,
                 DateTime.now(),
                 []
               );
@@ -143,7 +140,6 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                 builder: (c) {
                   return WillPopScope(
                       onWillPop: () {
-                        // return Future<bool>.value(true);
                         return Future<bool>.value(canHideModal);
                       },
                       child: Container(
@@ -164,14 +160,11 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                 }
             );
             var s = await OrdersService.get().createOrder(profile, newOrder);
-            print("${s.toString()} created");
             for(var p in _images) {
               if(p.type == PhotoSource.FILE) {
-                var i = await OrdersService.get().uploadOrderImage(profile, s.id, File(p.path));
-                print("$i uploaded");
+                await OrdersService.get().uploadOrderImage(profile, s.id, File(p.path));
               } else if(p.type == PhotoSource.NETWORK) {
-                var i = await OrdersService.get().addExistingImage(profile, s.id, p.path);
-                print("$i uploaded");
+                await OrdersService.get().addExistingImage(profile, s.id, p.path);
               }
             }
             orders.addOrderPreview(
@@ -179,11 +172,13 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                 newOrder.id,
                 newOrder.price,
                 newOrder.status,
+                // widget._master != null || widget._sketch != null ? 3 : 2,
                 0,
                 newOrder.name
               )
             );
             canHideModal = true;
+            Navigator.pop(context);
             Navigator.pop(context);
           },
           child: Text("Создать обьявление", style: recordButtonStyle),
@@ -205,23 +200,30 @@ class NewOrderScreenState extends State<NewOrderScreen> {
           Expanded(
             child: ListView(
               children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text("Мастер", style: titleSmallStyle),
-                        Text(widget._master != null ? "${widget._master.name} ${widget._master.surname}" : "", style: titleSmallBlueStyle)
-                            .onClick(() {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (c) => UserProfile(widget._master.id)
-                              )
-                          );
-                        })
-                      // ]
-                    // )
-                  ]
-                ).marginW(left: margin5, right: margin5, bottom: Global.blockY * 2),
+                Visibility(
+                  visible: widget._master != null || widget._sketch != null,
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text("Мастер", style: titleSmallStyle),
+                        Text(
+                            (widget._master != null ?
+                            "${widget._master.name} ${widget._master.surname}" :
+                            (
+                                widget._sketch != null ? "${widget._sketch.masterFullName}" : ""
+                            )), style: titleSmallBlueStyle
+                        ).onClick(() {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (c) => UserProfile(widget._master.id)
+                                  )
+                              );
+                            }
+                        )
+                      ]
+                  ).marginW(left: margin5, right: margin5, bottom: Global.blockY * 2)
+                ),
                 Text("Введите название", style: titleSmallStyle).marginW(left: margin5, right: margin5),
                 Container(
                   padding: EdgeInsets.only(left: Global.blockX * 2),
@@ -281,7 +283,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                   ),
                   child: servicesList.isEmpty ? Text("Нету выбранных услуг", style: hintSmallStyle) :
                   ListView.builder(
-                    physics: null,
+                    physics: NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                       itemCount: servicesList.length,
                       itemBuilder: (context, i) => Container(
@@ -527,12 +529,13 @@ class SelectServiceModalState extends State<SelectServiceModal> {
     List<Widget> widgets = <Widget> [];
     widgets.add(Text("Выберите услуги", style: titleStyle).center().marginW(bottom: Global.blockY));
     services.forEach((value) {
-      if(value.services.isNotEmpty) {
+      if((!widget.isShowOnlyMasterServices && value.services.isNotEmpty) || (widget.isShowOnlyMasterServices && value.containsMasterService())) {
+        print(value.services);
         widgets.add(
             Container(
                 alignment: Alignment.bottomLeft,
                 color: Colors.grey.withAlpha(30),
-                child: Text(value.name, style: titleMediumStyle)
+                child: Text(value.name, style: titleSmallStyle)
             )
         );
         value.services.forEach((element) {
@@ -575,19 +578,13 @@ class SelectServiceModalState extends State<SelectServiceModal> {
           Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text(service.name, style: widget.services.contains(service) ? titleSmallBlueStyle : hintSmallStyle)
+                Text(service.name, style: widget.services.contains(service) ? titleMediumBlueStyle : hintMediumStyle)
                     .onClick(() {
                   toggleService(service);
                 }),
-                Switch(
-                  value: widget.services.contains(service),
-                  onChanged: (value) {
-                    toggleService(service);
-                  },
-                )
               ]
           )
         ]
-    ).paddingW(left: margin5, right: margin5);
+    ).paddingW(left: margin5, top: Global.blockX, right: margin5, bottom: Global.blockX);
   }
 }

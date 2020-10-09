@@ -23,8 +23,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
-  FlutterStatusbarcolor.setStatusBarColor(Colors.white);
+  // FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+  // FlutterStatusbarcolor.setStatusBarColor(Colors.white);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<SettingProvider>.value(value: SettingProvider()),

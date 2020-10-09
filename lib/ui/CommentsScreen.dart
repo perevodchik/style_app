@@ -47,7 +47,7 @@ class CommentsState extends State<Comments> {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Text("${widget.userData.rate.toStringAsFixed(1)}/5 ", style: titleSmallStyle),
+                  Text("${widget.userData != null ? widget.userData.rate.toStringAsFixed(1) : 0}/5 ", style: titleSmallStyle),
                   RatingBar(
                     itemSize: Global.blockY * 2,
                     ignoreGestures: true,

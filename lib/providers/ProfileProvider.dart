@@ -69,6 +69,11 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  set about(String val) {
+    UserHolder.about = val;
+    notifyListeners();
+  }
+
   set avatar(String val) {
     UserHolder.avatar = val;
     notifyListeners();
