@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
@@ -13,10 +14,8 @@ import 'package:style_app/holders/SketchesHolder.dart';
 import 'package:style_app/holders/UserOrdersHolder.dart';
 import 'package:style_app/holders/UsersHolder.dart';
 import 'package:style_app/model/Category.dart';
-import 'package:style_app/model/NotifySettings.dart';
 import 'package:style_app/model/Service.dart';
 import 'package:style_app/providers/CitiesProvider.dart';
-import 'package:style_app/providers/ConversionProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/providers/SettingProvider.dart';
 import 'package:style_app/service/ProfileService.dart';
@@ -90,7 +89,7 @@ class ProfileState extends State<Profile> {
             children: <Widget>[
               Container(
                 height: Global.blockY * 4,
-                child: Text("Мой профиль", style: titleStyle),
+                child: Text(FlutterI18n.translate(context, "my_profile"), style: titleStyle),
               ).center().marginW(
                   left: Global.blockX * 5,
                   top: Global.blockY * 2,
@@ -113,47 +112,48 @@ class ProfileState extends State<Profile> {
                             ]),
                         child: Column(
                           children: <Widget>[
-                            ProfileItem("Имя", false, _nameController)
+                            ProfileItem(FlutterI18n.translate(context, "name"), false, _nameController)
                                 .marginW(left: margin5,
                                 right: margin5),
-                            ProfileItem("Фамилия",false,  _surnameController)
+                            ProfileItem(FlutterI18n.translate(context, "surname"), false,  _surnameController)
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
-                            ProfileItem("Телефон", true, _phoneController)
+                            ProfileItem(FlutterI18n.translate(context, "phone"), true, _phoneController)
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
-                            ProfileItem("E-mail", false, _emailController)
+                            ProfileItem(FlutterI18n.translate(context, "email"), false, _emailController)
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
-                            ProfileItem("Адресс", false, _addressController)
+                            ProfileItem(FlutterI18n.translate(context, "address"), false, _addressController)
                                   .marginW(left: margin5,
                                   top: Global.blockY * 1,
                                   right: margin5,
                                   bottom: Global.blockY * 1),
-                            ProfileItem("О себе", false, _aboutController, maxLines: 10)
+                            ProfileItem(FlutterI18n.translate(context, "about"), false, _aboutController, maxLines: 10)
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
-                            ProfileSelectItem("Язык", Languages.languages[settings.language], () async {
+                            ProfileSelectItem(FlutterI18n.translate(context, "language"), settings.language.name, () async {
                               showModalBottomSheet(
                                   context: context,
                                   backgroundColor: Colors.transparent,
                                   builder: (ctx) {
                                     return SelectLanguageModal();
+                                    // return SelectCityModalSheet();
                                   });
                             })
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
                                 bottom: Global.blockY * 1),
-                            ProfileSelectItem("Город", cities.byId(profile.city)?.name ?? "", () async {
+                            ProfileSelectItem(FlutterI18n.translate(context, "city"), cities.byId(profile.city)?.name ?? "", () async {
                               showModalBottomSheet(
                                   context: context,
                                   backgroundColor: Colors.transparent,
@@ -166,7 +166,7 @@ class ProfileState extends State<Profile> {
                                 right: margin5,
                                 bottom: Global.blockY * 1),
                             ProfileActionItem(
-                                "Комментарии", Icons.comment)
+                                FlutterI18n.translate(context, "comments"), Icons.comment)
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
@@ -183,7 +183,7 @@ class ProfileState extends State<Profile> {
                             Visibility(
                               visible: profile.profileType == 1,
                               child: ProfileActionItem(
-                                  "Настройка специализаций", Icons.bubble_chart)
+                                  FlutterI18n.translate(context, "services_settings"), Icons.bubble_chart)
                                   .marginW(left: margin5,
                                   top: Global.blockY * 1,
                                   right: margin5,
@@ -200,7 +200,7 @@ class ProfileState extends State<Profile> {
                             Visibility(
                                 visible: profile.profileType == 1,
                                 child: ProfileActionItem(
-                                    "Настройка портфолио", Icons.format_paint)
+                                    FlutterI18n.translate(context, "portfolio_settings"), Icons.format_paint)
                                     .marginW(left: margin5,
                                     top: Global.blockY * 1,
                                     right: margin5,
@@ -215,7 +215,7 @@ class ProfileState extends State<Profile> {
                                 })
                             ),
                             ProfileActionItem(
-                                "Настройка приватности", Icons.security)
+                                FlutterI18n.translate(context, "privacy_settings"), Icons.security)
                                 .marginW(left: margin5,
                                 top: Global.blockY * 1,
                                 right: margin5,
@@ -248,9 +248,9 @@ class ProfileState extends State<Profile> {
                                         profile.about = _aboutController.text;
                                       }
                                     },
-                                    child: Text("Сохранить"),
+                                    child: Text(FlutterI18n.translate(context, "save"), style: smallWhiteStyle),
                                     textColor: Colors.white,
-                                    color: Colors.blueAccent,
+                                    color: primaryColor,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
                                         borderRadius: defaultItemBorderRadius
@@ -275,7 +275,7 @@ class ProfileState extends State<Profile> {
                                         )
                                     );
                                   },
-                                  child: Text("Выход", style: titleSmallBlueStyle),
+                                  child: Text(FlutterI18n.translate(context, "exit"), style: titleSmallBlueStyle),
                                   textColor: Colors.black,
                                   elevation: 0,
                                   color: Colors.white,
@@ -285,7 +285,6 @@ class ProfileState extends State<Profile> {
                           ],
                         ).paddingW(top: Global.blockY * 10),
                       ).marginW(
-                          top: Global.blockY * 7.5,
                           left: Global.blockX * 5,
                           right: Global.blockX * 5,
                           bottom: Global.blockY * 5),
@@ -441,7 +440,7 @@ class SetServicesScreen extends StatelessWidget {
                 Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                   Navigator.pop(context);
                 }).marginW(left: Global.blockX * 5),
-                Text("Настройка услуг", style: titleStyle),
+                Text(FlutterI18n.translate(context, "services_setting"), style: titleStyle),
                 Icon(Icons.file_upload, size: 20, color: Colors.white)
               ],
             ).sizeW(Global.width, Global.blockY * 10),
@@ -460,7 +459,7 @@ class SetServicesScreen extends StatelessWidget {
                           children: buildServiceList(profile, data))
                           .marginAll(Global.blockX);
                     }
-                    return CircularProgressIndicator();
+                    return CircularProgressIndicator().center();
                   },
                 )
               )
@@ -479,7 +478,7 @@ class SetServicesScreen extends StatelessWidget {
       widgets.add(
           Container(
               alignment: Alignment.bottomLeft,
-              color: defaultItemColor,
+              color: accentColor,
               child: Text(c.name, style: titleMediumStyle).marginW(left: margin5, top: Global.blockX, bottom: Global.blockX)
           )
       );
@@ -518,85 +517,5 @@ class SelectableServicePreviewState extends State<SelectableServicePreview> {
           // )
         ])
     ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockX);
-  }
-}
-
-class ModalNotifySettings extends StatelessWidget {
-
-  @override
-  Widget build(BuildContext context) {
-    final SettingProvider settings = Provider.of<SettingProvider>(context);
-    return Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.vertical(
-                top: Radius.circular(10)),
-            color: Colors.white),
-        child: ListView(
-          shrinkWrap: true,
-          children: <Widget>[
-            Text("Настройка уведомлений",
-                style: titleStyle)
-                .marginW(
-                bottom: Global.blockY * 2),
-            Row(
-              mainAxisAlignment:
-              MainAxisAlignment
-                  .spaceBetween,
-              children: <Widget>[
-                Text("Новая запись",
-                    style: titleMediumStyle),
-                Switch(
-                  onChanged: (value) {
-                    settings.newOrder = value;
-//                    setState(() {
-//                      notifySettings.newOrderNotify = value;
-//                    });
-                  },
-                  value: settings.newOrder,
-                ).sizeW(Global.blockX * 15,
-                    Global.blockY * 5)
-              ],
-            ),
-            Row(
-              mainAxisAlignment:
-              MainAxisAlignment
-                  .spaceBetween,
-              children: <Widget>[
-                Text("Отмена записи",
-                    style: titleMediumStyle),
-                Switch(
-                  onChanged: (value) {
-                    settings.cancelOrder = value;
-//                    setState(() {
-//                      notifySettings.cancelOrderNotify = value;
-//                    });
-                  },
-                  value: settings.cancelOrder,
-                ).sizeW(Global.blockX * 15,
-                    Global.blockY * 5)
-              ],
-            ),
-            Row(
-              mainAxisAlignment:
-              MainAxisAlignment
-                  .spaceBetween,
-              children: <Widget>[
-                Text("Перенос записи",
-                    style: titleMediumStyle),
-                Switch(
-                  onChanged: (value) {
-                    settings.changeOrder = value;
-                  },
-                  value: settings.changeOrder,
-                ).sizeW(Global.blockX * 15,
-                    Global.blockY * 5)
-              ],
-            )
-          ],
-        ).paddingW(
-            left: Global.blockX * 5,
-            top: Global.blockX * 5,
-            right: Global.blockX * 5,
-            bottom: Global.blockX * 5));
   }
 }

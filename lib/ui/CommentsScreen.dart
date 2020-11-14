@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/model/Comment.dart';
@@ -38,7 +39,7 @@ class CommentsState extends State<Comments> {
             children: <Widget>[
               Icon(Icons.arrow_back_ios, size: 20)
               .onClick(() => Navigator.pop(context)),
-              Text("Отзывы о пользователе", style: titleStyle),
+              Text(FlutterI18n.translate(context, "comments_about_user"), style: titleStyle),
               Icon(Icons.arrow_back_ios, color: Colors.transparent)
             ],
           ).sizeW(Global.width, Global.blockY * 10).marginW(left: Global.blockX * 5, right: Global.blockX * 5),
@@ -58,7 +59,7 @@ class CommentsState extends State<Comments> {
                     itemCount: 5,
                     itemBuilder: (context, _) => Icon(
                       Icons.star,
-                      color: Colors.blueAccent,
+                      color: primaryColor,
                     ),
                     onRatingUpdate: (rating) {
                       print(rating);
@@ -66,7 +67,7 @@ class CommentsState extends State<Comments> {
                   )
                 ],
               ),
-              Text("Всего ${widget.userData.commentsCount} отзыва", style: titleSmallBlueStyle)
+              Text("${FlutterI18n.translate(context, "comments_all")} ${widget.userData.commentsCount}", style: titleSmallBlueStyle)
             ],
           ).marginW(left: Global.blockX * 5, right: Global.blockX * 5),
           Expanded(
@@ -146,7 +147,7 @@ class CommentPreview extends StatelessWidget {
                   itemCount: 5,
                   itemBuilder: (context, _) => Icon(
                     Icons.star,
-                    color: Colors.blueAccent,
+                    color: primaryColor,
                   ),
                   onRatingUpdate: (rating) {
                     print(rating);

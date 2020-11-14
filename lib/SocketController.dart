@@ -31,7 +31,6 @@ class SocketController {
       }, onDone: () {
         onDone();
       });
-      channel.sink.add("hello, server!");
     } else if(channel.closeCode == null) {
       return;
     }
@@ -57,6 +56,8 @@ class SocketController {
 
   Future<void> onError(String error) async {
     print("error $error");
+    disconnect();
+    init();
   }
 
   Future<void> onDone() async {

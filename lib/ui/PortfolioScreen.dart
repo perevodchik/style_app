@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
@@ -25,14 +26,13 @@ class PortfolioScreenState extends State<PortfolioScreen> {
   @override
   Widget build(BuildContext context) {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
-    print("build $_items}");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: null,
       floatingActionButton: Container(
         padding: EdgeInsets.all(Global.blockY),
         decoration: BoxDecoration(
-            color: defaultColorAccent,
+            color: primaryColor,
             borderRadius: BorderRadius.all(Radius.circular(Global.blockY * 5))
         ),
         child: Icon(Icons.add, color: Colors.white).onClick(() async {
@@ -54,8 +54,7 @@ class PortfolioScreenState extends State<PortfolioScreen> {
               Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                 Navigator.pop(context);
               }),
-              Text("Ваши работы", style: titleStyle),
-              // Text("добавить", style: titleSmallBlueStyle),
+              Text(FlutterI18n.translate(context, "your_portfolios"), style: titleStyle),
               Icon(Icons.arrow_upward, size: 20, color: Colors.white)
             ],
           ).marginW(left: margin5, right: margin5)
@@ -64,7 +63,6 @@ class PortfolioScreenState extends State<PortfolioScreen> {
             child: FutureBuilder(
               future: PortfolioRepository.get().getMasterPortfolio(profile),
               builder: (c, s) {
-                print("[${s.connectionState}] [${s.hasData}] [${s.hasError}] [${s.data}] [${s.error}]");
                 if(s.connectionState == ConnectionState.done && s.hasData && !s.hasError) {
                     var data = s.data as List<PortfolioItem>;
                     var images = data.map<Photo>((i) => i.image).toList();
@@ -113,7 +111,7 @@ class PortfolioImagePreview extends StatelessWidget {
           portfolio.image.getWidget().center(),
           Positioned(
             top: 0, right: 0,
-            child: Icon(Icons.close, color: defaultColorAccent, size: 36).onClick(() async {
+            child: Icon(Icons.close, color: primaryColor, size: 36).onClick(() async {
               PortfolioRepository.get().deletePortfolioItem(profile, portfolio);
               profile.tick();
             })

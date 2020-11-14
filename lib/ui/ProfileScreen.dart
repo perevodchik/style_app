@@ -2,12 +2,11 @@ import 'package:async/async.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
-import 'package:style_app/holders/CitiesHolder.dart';
 import 'package:style_app/model/Category.dart';
-import 'package:style_app/model/Comment.dart';
 import 'package:style_app/model/MasterData.dart';
 import 'package:style_app/model/Service.dart';
 import 'package:style_app/providers/CitiesProvider.dart';
@@ -77,8 +76,8 @@ class UserProfileState extends State<UserProfile> {
             shape: RoundedRectangleBorder(
                 borderRadius: defaultItemBorderRadius
             ),
-            color: Colors.blueAccent,
-            child: Text("Записаться", style: recordButtonStyle)
+            color: primaryColor,
+            child: Text(FlutterI18n.translate(context, "record"), style: recordButtonStyle)
                 .marginW(left: margin5, right: margin5)
           )
         ),
@@ -96,7 +95,7 @@ class UserProfileState extends State<UserProfile> {
                     Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                       Navigator.pop(context);
                     }).marginW(left: Global.blockX * 5),
-                    Text("Профиль", style: titleStyle),
+                    Text(FlutterI18n.translate(context, "profile"), style: titleStyle),
                     Icon(Icons.file_upload, size: 20, color: Colors.white)
                   ],
                 ).sizeW(Global.width, Global.blockY * 10),
@@ -106,7 +105,6 @@ class UserProfileState extends State<UserProfile> {
                     Container(
                         child: Stack(children: <Widget>[
                           Container(
-                            width: Global.width,
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -119,13 +117,13 @@ class UserProfileState extends State<UserProfile> {
                                 ]),
                             child: Column(
                               children: <Widget>[
-                                Text("${_userData.name} ${_userData.surname}",
+                                Text( "${_userData.name} ${_userData.surname}",
                                     style: previewNameStyle)
                                     .center(),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
-                                    Text("${_userData.getAverageRate()} ",
+                                    Text( "${_userData.getAverageRate()} ",
                                         style: previewRateStyle),
                                     RatingBar(
                                       itemSize: Global.blockY * 2,
@@ -137,7 +135,7 @@ class UserProfileState extends State<UserProfile> {
                                       itemCount: 5,
                                       itemBuilder: (context, _) => Icon(
                                         Icons.star,
-                                        color: Colors.blueAccent,
+                                        color: primaryColor,
                                       ),
                                       onRatingUpdate: (rating) {
                                         print(rating);
@@ -153,7 +151,7 @@ class UserProfileState extends State<UserProfile> {
                                     children: [
                                       Container(
                                         alignment: Alignment.bottomLeft,
-                                        child: Text("Фотографии", style: titleMediumStyle),
+                                        child: Text(FlutterI18n.translate(context, "photos"), style: titleMediumStyle),
                                       ).paddingW(left: Global.blockX * 3),
                                       Container(
                                           child: _userData.portfolioImages.length > 0 ?
@@ -196,13 +194,13 @@ class UserProfileState extends State<UserProfile> {
                                                   ]
                                               )
                                           ).sizeW(Global.blockX * 90, Global.blockY * 25) :
-                                          Text("Пользователь еще не добавил фотографий")
+                                          Text(FlutterI18n.translate(context, "user_no_have_photos"))
                                       ).paddingW(
                                           top: Global.blockX * 3,
                                           bottom: Global.blockX * 3),
                                       Container(
                                         alignment: Alignment.bottomLeft,
-                                        child: Text("Услуги", style: titleMediumStyle),
+                                        child: Text(FlutterI18n.translate(context, "services"), style: titleMediumStyle),
                                       ).paddingW(left: Global.blockX * 3),
                                       Container(
                                           child: Column(
@@ -221,7 +219,7 @@ class UserProfileState extends State<UserProfile> {
                                     children: [
                                       Container(
                                         alignment: Alignment.bottomLeft,
-                                        child: Text("О себе", style: titleMediumStyle),
+                                        child: Text(FlutterI18n.translate(context, "about"), style: titleMediumStyle),
                                       ).paddingW(left: Global.blockX * 3),
                                       Container(
                                         child: Row(
@@ -239,11 +237,11 @@ class UserProfileState extends State<UserProfile> {
                                               children: <Widget>[
                                                 Container(
                                                     alignment: Alignment.bottomLeft,
-                                                    child: Text("${_userData.address}" ?? "Адресс не указан")
+                                                    child: Text( "${_userData.address}" ?? FlutterI18n.translate(context, "address_not_present"))
                                                 ),
                                                 // Icon(Icons.map, color: defaultColorAccent)
                                                 // .onClick(() async {
-                                                //   List<Location> locations = await locationFromAddress("${_userData.address}");
+                                                //   List<Location> locations = await locationFromAddress( "${_userData.address}");
                                                 //
                                                 // })
                                               ]
@@ -256,7 +254,7 @@ class UserProfileState extends State<UserProfile> {
                               ],
                             ).paddingW(top: Global.blockY * 10),
                           ).marginW(
-                              top: Global.blockY * 6,
+                              top: Global.blockY * 5,
                               left: Global.blockX * 5,
                               right: Global.blockX * 5,
                               bottom: Global.blockY * 10),
@@ -270,7 +268,7 @@ class UserProfileState extends State<UserProfile> {
                             child: (_userData.avatar == null || _userData.avatar.isEmpty ? Text(
                                 "${_userData.name[0]}${_userData.surname[0]}",
                                 style: titleBigBlueStyle) :
-                            Image.network("$url/images/${_userData.avatar}"))
+                            Image.network( "$url/images/${_userData.avatar}"))
                                 .center(),
                           ).positionW(
                               Global.blockX * 37.5, 0, Global.blockX * 37.5, null),
@@ -280,13 +278,12 @@ class UserProfileState extends State<UserProfile> {
                                   height: Global.blockY * 6,
                                   width: Global.blockY * 6,
                                   decoration: BoxDecoration(
-                                      color: defaultColorAccent,
+                                      color: primaryColor,
                                       borderRadius: defaultCircleBorderRadius),
                                   child: Icon(Icons.message, color: Colors.white).center()
                               )
                                   .onClick(() async {
                                     var conversion = await conversions.getConversion(user, _userData.id);
-                                    print("findConversion $conversion");
                                     if(conversion == null) return;
                                     Navigator.push(
                                       context,
@@ -304,12 +301,12 @@ class UserProfileState extends State<UserProfile> {
                                   height: Global.blockY * 6,
                                   width: Global.blockY * 6,
                                   decoration: BoxDecoration(
-                                      color: defaultColorAccent,
+                                      color: primaryColor,
                                       borderRadius: defaultCircleBorderRadius),
                                   child: Icon(Icons.phone, color: Colors.white).center()
                               )
                                   .onClick(() {
-                                    launch("tel:${_userData.phone}");
+                                    launch( "tel:${_userData.phone}");
                               }))
                               .positionW(
                               null, Global.blockX * 5, Global.blockX * 10, null)
@@ -319,65 +316,6 @@ class UserProfileState extends State<UserProfile> {
           )
         )
         ).safe();
-  }
-
-  List<Widget> buildCommentBlock(List<Comment> comments) {
-    List<Widget> widgets = <Widget>[];
-    for (int i = 0; i < comments.length; i++) {
-      var v = Container(
-              decoration: BoxDecoration(
-                color: defaultItemColor,
-                  borderRadius: defaultItemBorderRadius),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Row(children: <Widget>[
-                        Container(
-                          decoration: BoxDecoration(
-                              color: Colors.blueAccent,
-                              borderRadius:
-                                  defaultItemBorderRadius),
-                        ).sizeW(Global.blockX * 5, Global.blockX * 5).marginW(
-                            top: Global.blockY,
-                            right: Global.blockX * 2,
-                            bottom: Global.blockY),
-                        Text(
-                        "client",
-                            style: titleSmallStyle)
-                      ]),
-                      Text("", style: hintExtraSmallStyle)
-                    ],
-                  ).paddingW(top: Global.blockX),
-                  Row(children: <Widget>[
-                    RatingBar(
-                      itemSize: Global.blockY * 2,
-                      ignoreGestures: true,
-                      initialRating: comments[i].rate,
-                      minRating: 0,
-                      direction: Axis.horizontal,
-                      allowHalfRating: true,
-                      itemCount: 5,
-                      itemBuilder: (context, _) => Icon(
-                        Icons.star,
-                        color: Colors.blueAccent,
-                      ),
-                      onRatingUpdate: (rating) {
-                        print(rating);
-                      },
-                    )
-                  ]),
-                  Text(comments[i].message, style: commentTextStyle)
-                      .paddingAll(Global.blockX)
-                ],
-              ).marginW(left: Global.blockX * 2, right: Global.blockX * 2))
-          .marginW(bottom: Global.blockY * 2);
-      widgets.add(v);
-    }
-
-    return widgets;
   }
 
   List<Widget> buildServiceList(List<Category> services) {
@@ -397,7 +335,7 @@ class UserProfileState extends State<UserProfile> {
       }
     });
     if(widgets.isEmpty) {
-      widgets.add(Text("Мастер не еще не добавил список услуг").center());
+      widgets.add(Text(FlutterI18n.translate(context, "master_not_have_services")).center());
     }
     return widgets;
   }
@@ -442,8 +380,14 @@ class UserProfileState extends State<UserProfile> {
         }).visibility(service.wrapper?.description?.isNotEmpty ?? false)
       ]),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
-        Text("${service.wrapper.time} мин"),
-        Text("${service.wrapper.price} грн"),
+        Visibility(
+          visible: service.wrapper.time > 0,
+          child: Text( "${service.wrapper.time} ${FlutterI18n.translate(context, "min")}")
+        ),
+        Visibility(
+            visible: service.wrapper.price > 0,
+            child: Text( "${service.wrapper.price} ${FlutterI18n.translate(context, "currency")}")
+        )
       ])
     ]).paddingW(
         left: Global.blockX * 3,

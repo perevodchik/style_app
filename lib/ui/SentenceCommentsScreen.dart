@@ -1,6 +1,7 @@
 import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/model/SentenceComment.dart';
@@ -60,7 +61,7 @@ class SentenceCommentsState extends State<SentenceCommentsPage> {
               Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                 Navigator.pop(context);
               }).marginW(left: Global.blockX * 5),
-              Text("Комментарии к ставке", style: titleStyle),
+              Text(FlutterI18n.translate(context, "comments_for_sentence"), style: titleStyle),
               Icon(Icons.file_upload, size: 20, color: Colors.white)
             ],
           ).sizeW(Global.width, Global.blockY * 10),
@@ -96,7 +97,7 @@ class SentenceCommentsState extends State<SentenceCommentsPage> {
                           hintText: "Введите текст комментария",
                           hintStyle: hintSmallStyle),
                     ).sizeW(Global.blockX * 80, Global.blockY * 10),
-                    Icon(Icons.send, color: defaultColorAccent).onClick(() async {
+                    Icon(Icons.send, color: primaryColor).onClick(() async {
                       if(_commentController.text.isEmpty)
                         return;
                       var result = await SentencesRepository.get().sendSentenceComment(profile, widget._sentenceId, _commentController.text);
@@ -123,14 +124,14 @@ class SentenceCommentItem extends StatelessWidget {
     return Container(
             padding: EdgeInsets.all(Global.blockY),
             decoration: BoxDecoration(
-                color: profile.id == _comment.userId ? defaultColorAccent.withOpacity(0.1) : defaultItemColor,
+                color: profile.id == _comment.userId ? primaryColor.withOpacity(0.1) : accentColor,
                 borderRadius: defaultItemBorderRadius
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("${_comment.userName} ${_comment.userSurname}", style: titleSmallBlueStyle)
+                  Text( "${_comment.userName} ${_comment.userSurname}", style: titleSmallBlueStyle)
                   .onClick(() => Navigator.push(
                       context,
                       MaterialWithModalsPageRoute(
@@ -138,10 +139,10 @@ class SentenceCommentItem extends StatelessWidget {
                       )
                   )
                   ),
-                  Text("${_comment.commentDate.getFullDate()}", style: hintExtraSmallStyle),
+                  Text( "${_comment.commentDate.getFullDate()}", style: hintExtraSmallStyle),
                 ]
               ),
-              Text("${_comment.text}")
+              Text(_comment.text)
             ]))
         .marginW(
             left: margin5, right: margin5, bottom: Global.blockY);

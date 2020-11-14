@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
-import 'package:style_app/holders/CitiesHolder.dart';
 import 'package:style_app/holders/UserOrdersHolder.dart';
 import 'package:style_app/model/Record.dart';
 import 'package:style_app/providers/CitiesProvider.dart';
@@ -50,12 +50,12 @@ class RecordsState extends State<Records>{
             onPressed: () => Navigator.push(context, MaterialWithModalsPageRoute(
                 builder: (context) => NewOrderScreen(null ,null, cities.byId(profile.city))
             )),
-            color: Colors.blueAccent,
+            color: primaryColor,
             elevation: 0,
             shape: RoundedRectangleBorder(
                 borderRadius: defaultItemBorderRadius
             ),
-            child: Text("Создать новую запись", style: smallWhiteStyle)
+            child: Text(FlutterI18n.translate(context, "create_new_order"), style: smallWhiteStyle)
         )
       )
           .marginW(left: Global.blockY * 2, top: Global.blockX, right: Global.blockY * 2, bottom: Global.blockY),
@@ -63,7 +63,7 @@ class RecordsState extends State<Records>{
         children: <Widget>[
           Container(
             height: Global.blockY * 4,
-            child: Text("Ваши записи", style: titleStyle),
+            child: Text(FlutterI18n.translate(context, "your_orders"), style: titleStyle),
           ).center().marginW(
               left: Global.blockX * 5,
               top: Global.blockY * 2,
@@ -119,20 +119,20 @@ class UserOrderPreview extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text("${preview.name}", style: titleMediumBlueStyle)
+              Text( "${preview.name}", style: titleMediumBlueStyle)
             ],
           ),
           Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text(preview.price == null || preview.price < 1 ? "Цена не указана" : "Цена ${preview.price}", style: serviceSubtitleStyle)
+                Text(preview.price == null || preview.price < 1 ? FlutterI18n.translate(context, "price_not_present") : "${FlutterI18n.translate(context, "price")} ${preview.price}", style: serviceSubtitleStyle)
               ]
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text("Ставок ${preview.sentencesCount}", textAlign: TextAlign.start),
-              Text("${StatusUtils.getStatus(preview.status)}", textAlign: TextAlign.start)
+              Text( "${FlutterI18n.translate(context, "sentences")} ${preview.sentencesCount}", textAlign: TextAlign.start),
+              Text( "${StatusUtils.getStatus(context, preview.status)}", textAlign: TextAlign.start)
             ],
           )
         ],

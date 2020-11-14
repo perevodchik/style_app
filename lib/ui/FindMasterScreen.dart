@@ -1,12 +1,14 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/holders/CitiesHolder.dart';
 import 'package:style_app/holders/UsersHolder.dart';
 import 'package:style_app/model/Category.dart';
+import 'package:style_app/model/City.dart';
 import 'package:style_app/model/MasterData.dart';
 import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/Service.dart';
@@ -72,8 +74,8 @@ with AutomaticKeepAliveClientMixin {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Icon(Icons.filter_list, color: Colors.transparent),
-            Text("Поиск мастеров", style: titleStyle),
-            Icon(Icons.filter_list, color: Colors.blueAccent)
+            Text(FlutterI18n.translate(context, "find_master"), style: titleStyle),
+            Icon(Icons.filter_list, color: primaryColor)
                 .onClick(() async {
                   var data = await showModalBottomSheet(
                       context: context,
@@ -120,7 +122,6 @@ with AutomaticKeepAliveClientMixin {
                   itemCount: UsersHolder.users.length,
                   itemBuilder: (b, i) {
                     if(UsersHolder.hasMore && i >= UsersHolder.users.length - 1 && !UsersHolder.isLoading) {
-                      print("loadList 1");
                       loadList(profile, UsersHolder.page++, UsersHolder.itemsPerPage, filter: filter).then((value) {
                         setState(() {
                           UsersHolder.isLoading = false;
@@ -159,24 +160,43 @@ class SelectCityModalSheetState extends State<SelectCityModalSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: Global.blockY * 75,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+            borderRadius: defaultModalBorderRadius,
             color: Colors.white),
-        child: ListView(
-          shrinkWrap: true,
+        child: Wrap(
           children: <Widget>[
-            Text("Выберите город", style: titleStyle),
-            Container(
-                height: Global.blockY * 50,
-                child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: CitiesHolder.cities.length,
-                    itemBuilder: (context, position) {
-                      return SelectableCityPreview(position);
-                    }))
+            Text(FlutterI18n.translate(context, "select_city"), style: titleStyle)
+                .marginW(top: Global.blockY * 2)
+                .center(),
+            ListView(
+                shrinkWrap: true,
+                children: CitiesHolder.cities.map<Widget>((e) => SelectableCityPreview0(e)).toList()
+            ),
           ],
         ).paddingW(left: Global.blockX * 5, right: Global.blockX * 5));
+  }
+}
+
+class SelectableCityPreview0 extends StatelessWidget {
+  final City city;
+
+  SelectableCityPreview0(this.city);
+
+  @override
+  Widget build(BuildContext context) {
+    final SearchFilterProvider filter =
+    Provider.of<SearchFilterProvider>(context);
+    return Container(
+        height: Global.blockY * 5,
+        child: ListTile(
+          title: Text(city.name,
+              style: filter.cities.contains(city)
+                  ? titleSmallBlueStyle
+                  : titleSmallStyle)
+              .onClick(() {
+            filter.toggleCity(city);
+          }),
+        ).onClick(() => Navigator.pop(context)));
   }
 }
 
@@ -191,10 +211,8 @@ class SelectableCityPreview extends StatelessWidget {
         Provider.of<SearchFilterProvider>(context);
     return Container(
         height: Global.blockY * 5,
-        width: Global.blockX * 60,
         child: ListTile(
-          dense: true,
-          leading: Text("${CitiesHolder.cities[position]}",
+          title: Text(CitiesHolder.cities[position].name,
                   style: filter.cities.contains(CitiesHolder.cities[position])
                       ? titleSmallBlueStyle
                       : titleSmallStyle)
@@ -222,30 +240,34 @@ class SelectServiceModalSheetState extends State<SelectServiceModalSheet> {
     final ServicesProvider services =
         Provider.of<ServicesProvider>(context);
     return Container(
-            height: Global.blockY * 75,
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                borderRadius: defaultModalBorderRadius,
                 color: Colors.white),
-            child: ListView(
+            child: Wrap(
+              children: [
+                Text(FlutterI18n.translate(context, "select_service"), style: titleStyle)
+                    .center()
+                    .marginW(top: Global.blockY * 2),
+                ListView(
                     shrinkWrap: true,
                     children:
-                        buildServiceList(filter, services.map))
-                .marginAll(Global.blockX))
-        .background(Colors.transparent);
+                    buildServiceList(filter, services.map)
+                )
+              ]
+            )
+        ).background(Colors.transparent);
   }
 
   List<Widget> buildServiceList(
       SearchFilterProvider filter, List<Category> map) {
     List<Widget> widgets = <Widget>[];
-    widgets.add(Text("Выберите услуги", style: titleStyle)
-        .center()
-        .marginW(bottom: Global.blockY));
+    // widgets.add();
     map.forEach((value) {
       if(value.services != null && value.services.length > 0) {
         widgets.add(Container(
             alignment: Alignment.bottomLeft,
             color: Colors.grey.withOpacity(0.1),
-            child: Text(value.name, style: titleSmallStyle)));
+            child: Text(value.name, style: titleSmallStyle).marginW(left: Global.blockY)));
         value.services?.forEach((service) {
           widgets.add(SelectableServicePreview(service));
       });
@@ -347,7 +369,7 @@ class ProfilePreviewState extends State<ProfilePreview> {
                             itemCount: 5,
                             itemBuilder: (context, _) => Icon(
                               Icons.star,
-                              color: Colors.blueAccent,
+                              color: primaryColor,
                             ),
                             onRatingUpdate: (rating) {
                               print(rating);
@@ -379,7 +401,7 @@ class ProfilePreviewState extends State<ProfilePreview> {
                       width: MediaQuery.of(context).size.width,
                       margin: EdgeInsets.symmetric(horizontal: 5.0),
                       decoration: BoxDecoration(
-                        color: defaultItemColor,
+                        color: accentColor,
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       child: Image.network("$url/images/$i")
@@ -398,7 +420,7 @@ class ProfilePreviewState extends State<ProfilePreview> {
             }).toList(),
           ).marginW(top: Global.blockX, bottom: Global.blockX) :
               Container(
-                child: Text("Мастер еще не добавит фотографий").center(),
+                child: Text(FlutterI18n.translate(context, "master_not_add_portfolio")).center(),
               ).marginW(top: Global.blockY, bottom: Global.blockY)
         ],
       ).paddingAll(Global.blockY),

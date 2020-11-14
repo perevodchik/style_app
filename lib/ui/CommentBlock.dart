@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:style_app/model/Comment.dart';
@@ -25,12 +26,12 @@ class CommentBlock extends StatelessWidget{
             Container(
               alignment: Alignment.bottomLeft,
               child: Text(
-                  "Отзывы(${data.commentsCount})",
+                  "${FlutterI18n.translate(context, "comments")}(${data.commentsCount})",
                   style: titleMediumStyle),
             ),
             Row(
               children: <Widget>[
-                Text("Читать", style: titleSmallBlueStyle),
+                Text(FlutterI18n.translate(context, "listen"), style: titleSmallBlueStyle),
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 12,
@@ -48,11 +49,11 @@ class CommentBlock extends StatelessWidget{
         data.comments == null || data.comments.isEmpty
             ? Container(
             decoration: BoxDecoration(
-              color: defaultItemColor,
+              color: accentColor,
               borderRadius: defaultItemBorderRadius,
             ),
             child: Text(
-                "У пользователя еще нет отзывов",
+                FlutterI18n.translate(context, "user_no_have_comments"),
                 style: profileDescriptionStyle)
                 .center()
                 .marginW(
@@ -80,7 +81,7 @@ class CommentPreview extends StatelessWidget {
     print(comment.toString());
     return Container(
         decoration: BoxDecoration(
-            color: defaultItemColor,
+            color: accentColor,
             borderRadius: defaultItemBorderRadius),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +120,7 @@ class CommentPreview extends StatelessWidget {
                 itemCount: 5,
                 itemBuilder: (context, _) => Icon(
                   Icons.star,
-                  color: Colors.blueAccent,
+                  color: primaryColor,
                 ),
                 onRatingUpdate: (rating) {
                   print(rating);

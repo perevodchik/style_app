@@ -20,6 +20,7 @@ version: 1.0.0+1
 environment:
   sdk: ">=2.7.0 <3.0.0"
 
+
 dependencies:
   flutter:
     sdk: flutter
@@ -41,7 +42,7 @@ dependencies:
   # lazy_load_scrollview
   lazy_load_scrollview: ^1.1.0
   # i18n
-  flutter_i18n: ^0.15.0
+  flutter_i18n: ^0.20.0
   # flutter_launcher_icons
   flutter_launcher_icons: "^0.7.3"
   # flutter_rating_bar
@@ -70,6 +71,8 @@ dependencies:
   web_socket_channel: ^1.1.0
   # flutter_platform_widgets
   flutter_platform_widgets: ^0.60.0
+  # connectivity
+  connectivity: ^0.4.9+3
 
 
 #flutter_icons:

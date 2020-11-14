@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/SocketController.dart';
 import 'package:style_app/providers/ConversionProvider.dart';
@@ -12,6 +13,7 @@ import 'package:style_app/ui/FindOrdersScreen.dart';
 import 'package:style_app/ui/MessagesScreen.dart';
 import 'package:style_app/ui/SketchesScreen.dart';
 import 'package:style_app/ui/UserRecordsScreen.dart';
+import 'package:style_app/utils/Constants.dart';
 import 'package:style_app/utils/Widget.dart';
 
 import '../utils/Global.dart';
@@ -76,40 +78,36 @@ class MainState extends State<Main> with WidgetsBindingObserver {
       });
     }
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       resizeToAvoidBottomPadding: false,
       resizeToAvoidBottomInset: false,
       appBar: null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _page,
         onTap: (tapIndex) => setState(() {_page = tapIndex;}),
-        selectedItemColor: Colors.blueAccent,
-        items: const <BottomNavigationBarItem> [
+        selectedItemColor: primaryColor,
+        items: <BottomNavigationBarItem> [
           BottomNavigationBarItem(
               icon: Icon(Icons.search, color: Colors.grey),
-              title: Text("Поиск"),
-              activeIcon: Icon(Icons.search, color: Colors.blueAccent)),
+              title: Text(FlutterI18n.translate(context, "find")),
+              activeIcon: Icon(Icons.search, color: primaryColor)),
           BottomNavigationBarItem(
               icon: Icon(Icons.brush, color: Colors.grey),
-              title: Text("Эскизы"),
-              activeIcon: Icon(Icons.brush, color: Colors.blueAccent)
+              title: Text(FlutterI18n.translate(context, "sketches")),
+              activeIcon: Icon(Icons.brush, color: primaryColor)
           ),
           BottomNavigationBarItem(
               icon: Icon(Icons.message, color: Colors.grey),
-              title: Text("Сообщения"),
-              activeIcon: Icon(Icons.message, color: Colors.blueAccent)),
+              title: Text(FlutterI18n.translate(context, "messages")),
+              activeIcon: Icon(Icons.message, color: primaryColor)),
           BottomNavigationBarItem(
               icon: Icon(Icons.calendar_today, color: Colors.grey),
-              title: Text("Записии"),
-              activeIcon: Icon(Icons.calendar_today, color: Colors.blueAccent)),
-//          BottomNavigationBarItem(
-//              icon: Icon(Icons.favorite, color: Colors.grey),
-//              title: Text("Мастера"),
-//              activeIcon: Icon(Icons.favorite, color: Colors.blueAccent)),
+              title: Text(FlutterI18n.translate(context, "orders")),
+              activeIcon: Icon(Icons.calendar_today, color: primaryColor)),
           BottomNavigationBarItem(
               icon: Icon(Icons.people, color: Colors.grey),
-              title: Text("Профиль"),
-              activeIcon: Icon(Icons.people, color: Colors.blueAccent))
+              title: Text(FlutterI18n.translate(context, "profile")),
+              activeIcon: Icon(Icons.people, color: primaryColor))
         ],
       ),
       body: profile.profileType == 0 ?

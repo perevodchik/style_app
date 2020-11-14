@@ -1,4 +1,11 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n_delegate.dart';
+import 'package:flutter_i18n/loaders/decoders/json_decode_strategy.dart';
+import 'package:flutter_i18n/loaders/file_translation_loader.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/providers/CitiesProvider.dart';
@@ -23,8 +30,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  // FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
-  // FlutterStatusbarcolor.setStatusBarColor(Colors.white);
+    if(Platform.isIOS) {
+      FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+      FlutterStatusbarcolor.setStatusBarColor(Colors.white);
+    }
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<SettingProvider>.value(value: SettingProvider()),
@@ -42,6 +51,23 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<OrderProvider>.value(value: OrderProvider())
       ],
       child: MaterialApp(
+        localizationsDelegates: [
+          FlutterI18nDelegate(
+            translationLoader: FileTranslationLoader(
+              // fallbackFile: "ru_RU",
+              // fallbackFile: "en_EN",
+              // fallbackFile: "en_EN",
+              fallbackFile: "uk_UA",
+              useCountryCode: true,
+              decodeStrategies: [
+                JsonDecodeStrategy()
+              ]
+            )
+          ),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          DefaultCupertinoLocalizations.delegate,
+        ],
         title: 'Flutter Demo',
         theme: ThemeData(
           primarySwatch: Colors.blue,
@@ -49,7 +75,6 @@ class MyApp extends StatelessWidget {
         ),
         home: PreloaderScreen()
         // home: const AuthScreen()
-//        const Main(),
       ),
     );
   }

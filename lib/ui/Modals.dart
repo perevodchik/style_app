@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:style_app/holders/CitiesHolder.dart';
 import 'package:style_app/model/Category.dart';
 import 'package:style_app/model/City.dart';
@@ -41,29 +43,35 @@ class SelectCityModal extends StatelessWidget {
             borderRadius: BorderRadius.vertical(
                 top: Radius.circular(10)),
             color: Colors.white),
-        child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: cities.cities.length,
-            controller: ScrollController(),
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemBuilder:
-                (context, position) {
-              var city = cities.cities[position];
-              print("build $position");
-              return Container(
-                  height:
-                  Global.blockY * 5,
-                  child: ListTile(
-                    dense: true,
-                    leading: Text(
-                        "${city.name}", style: city.id == profile.city ? titleSmallBlueStyle : titleSmallStyle)
-                        .onClick(() {
-                      profile.city = city.id;
-                    }),
-                  ).onClick(() =>
-                      Navigator.pop(
-                          context)));
-            })
+        child: Wrap(
+          children: [
+            Text(FlutterI18n.translate(context, "select_city"), style: titleMediumStyle)
+                .marginW(top: Global.blockY * 2)
+                .center(),
+            ListView.builder(
+                shrinkWrap: true,
+                itemCount: cities.cities.length,
+                controller: ScrollController(),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemBuilder:
+                    (context, position) {
+                  var city = cities.cities[position];
+                  return Container(
+                      height:
+                      Global.blockY * 5,
+                      child: ListTile(
+                        dense: true,
+                        leading: Text(
+                            "${city.name}", style: city.id == profile.city ? titleSmallBlueStyle : titleSmallStyle)
+                            .onClick(() {
+                          profile.city = city.id;
+                        }),
+                      ).onClick(() =>
+                          Navigator.pop(
+                              context)));
+                })
+          ]
+        )
     );
   }
 }
@@ -80,25 +88,32 @@ class SelectOrderCityModal extends StatelessWidget {
             borderRadius: BorderRadius.vertical(
                 top: Radius.circular(10)),
             color: Colors.white),
-        child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: cities.cities.length,
-            controller: ScrollController(),
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemBuilder:
-                (context, position) {
-              var city0 = cities.cities[position];
-              return Container(
-                  height:
-                  Global.blockY * 5,
-                  child: ListTile(
-                    dense: true,
-                    leading: Text(
-                        "${city0.name}", style: city0.id == city.id ? titleSmallBlueStyle : titleSmallStyle),
-                  ).onClick(() =>
-                      Navigator.pop(
-                          context, city0 == city ? null : city0)));
-            })
+        child: Wrap(
+          children: [
+            Text(FlutterI18n.translate(context, "select_city"), style: titleMediumStyle)
+            .marginW(top: Global.blockY)
+            .center(),
+            ListView.builder(
+                shrinkWrap: true,
+                itemCount: cities.cities.length,
+                controller: ScrollController(),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemBuilder:
+                    (context, position) {
+                  var city0 = cities.cities[position];
+                  return Container(
+                      height:
+                      Global.blockY * 5,
+                      child: ListTile(
+                        dense: true,
+                        leading: Text(
+                            city0.name, style: city0.id == city.id ? titleSmallBlueStyle : titleSmallStyle),
+                      ).onClick(() =>
+                          Navigator.pop(
+                              context, city0 == city ? null : city0)));
+                })
+          ]
+        )
     );
   }
 }
@@ -112,15 +127,27 @@ class SelectLanguageModal extends StatelessWidget {
         color: Colors.white,
         borderRadius: defaultItemBorderRadius
       ),
-      child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: Languages.languages.length,
-          itemBuilder: (context, i) =>
-              Text("${Languages.languages[i]}", style: settings.language == i ? titleSmallBlueStyle : titleSmallStyle)
-                  .onClick(() {
-                settings.language = i;
-              }).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2)
-      ).marginW(top: Global.blockY * 2)
+      child: Wrap(
+        children: [
+          Text(FlutterI18n.translate(context, "select_language"), style: titleMediumStyle)
+              .marginW(top: Global.blockY * 2)
+              .center(),
+          ListView(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              children: Languages.languages.map((l) =>
+                  Text(l.name, style: settings.language.id == l.id ? titleSmallBlueStyle : titleSmallStyle)
+                      .onClick(() async {
+                    var s = await SharedPreferences.getInstance();
+                    await FlutterI18n.refresh(context, l.locale);
+                    settings.language = l;
+                    s.setInt("locale", l.id);
+                    print("set string ${l.locale.languageCode}_${l.locale.countryCode}");
+                  }).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2)
+              ).toList()
+          ).marginW(top: Global.blockY * 2)
+        ]
+      )
     );
   }
 }
@@ -141,33 +168,33 @@ class FindOrdersFilterModal extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text("Выбрано городов: ${orders.cities.length}",
+              Text("${FlutterI18n.translate(context, "selected_cities_count")} ${orders.cities.length}",
                   style: titleSmallStyle),
-              Text("выбрать", style: titleSmallBlueStyle).onClick(() {
-                showMaterialModalBottomSheet(
+              Text(FlutterI18n.translate(context, "select"), style: titleSmallBlueStyle).onClick(() {
+                showModalBottomSheet(
                     context: context,
                     backgroundColor: Colors.transparent,
-                    builder: (context, s) => OrderSelectCityModalSheet());
+                    builder: (context) => OrderSelectCityModalSheet());
               }),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text("Выбрано специализаций: ${orders.services.length}",
+              Text("${FlutterI18n.translate(context, "selected_services_count")} ${orders.services.length}",
                   style: titleSmallStyle),
-              Text("выбрать", style: titleSmallBlueStyle).onClick(() {
-                showMaterialModalBottomSheet(
+              Text(FlutterI18n.translate(context, "select"), style: titleSmallBlueStyle).onClick(() {
+                showModalBottomSheet(
                     context: context,
                     backgroundColor: Colors.transparent,
-                    builder: (context, s) => OrderSelectServiceModalSheet());
+                    builder: (context) => OrderSelectServiceModalSheet());
               }),
             ],
           ).marginW(top: Global.blockY * 2, bottom: Global.blockY),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Показать только с городом",
+              Text(FlutterI18n.translate(context, "show_only_with_city"),
                   style: titleSmallStyle),
               Switch(
                 value: orders.isOnlyWithCity,
@@ -178,7 +205,7 @@ class FindOrdersFilterModal extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Показать только с ценой",
+              Text(FlutterI18n.translate(context, "show_only_with_price"),
                   style: titleSmallStyle),
               Switch(
                 value: orders.isOnlyWithPrice,
@@ -205,7 +232,7 @@ class FindOrdersFilterModal extends StatelessWidget {
                     ),
                     color: Colors.white,
                     child:
-                    Text("Очистить", style: titleSmallBlueStyle)),
+                    Text(FlutterI18n.translate(context, "clean"), style: titleSmallBlueStyle)),
                 RaisedButton(
                     onPressed: () async {
                       var filterString = "";
@@ -231,9 +258,9 @@ class FindOrdersFilterModal extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: defaultItemBorderRadius
                     ),
-                    color: defaultColorAccent,
+                    color: primaryColor,
                     child:
-                    Text("Отфильтровать", style: smallWhiteStyle))
+                    Text(FlutterI18n.translate(context, "filter"), style: smallWhiteStyle))
               ]
           )
         ]
@@ -260,9 +287,10 @@ class OrderSelectCityModalSheetState extends State<OrderSelectCityModalSheet> {
         child: ListView(
           shrinkWrap: true,
           children: <Widget>[
-            Text("Выберите город", style: titleStyle),
+            Text("Выберите город", style: titleStyle)
+                .marginW(top: Global.blockY * 2)
+                .center(),
             Container(
-                height: Global.blockY * 50,
                 child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: CitiesHolder.cities.length,
@@ -287,7 +315,7 @@ class SelectableCityPreview extends StatelessWidget {
         width: Global.blockX * 60,
         child: ListTile(
           dense: true,
-          leading: Text("${city.name}",
+          leading: Text(city.name,
               style: records.cities.contains(city)
                   ? titleSmallBlueStyle
                   : titleSmallStyle)
@@ -310,7 +338,6 @@ class OrderSelectServiceModalSheetState extends State<OrderSelectServiceModalShe
     Provider.of<SearchFilterProvider>(context);
     final ServicesProvider services = Provider.of<ServicesProvider>(context);
     return Container(
-        height: Global.blockY * 75,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
             color: Colors.white),
@@ -414,7 +441,7 @@ class SketchesFilterModalState extends State<SketchesFilterModal> {
               Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Стоимость"),
+                    Text(FlutterI18n.translate(context, "price"), style: titleSmallStyle),
                     Row(
                       children: [
                         Container(
@@ -461,7 +488,7 @@ class SketchesFilterModalState extends State<SketchesFilterModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Только избранные", style: titleSmallBlueStyle),
+                    Text(FlutterI18n.translate(context, "show_only_favorites"), style: titleSmallBlueStyle),
                     Switch(
                         value: filter.isJustFavorite,
                         onChanged: (v) {
@@ -488,7 +515,7 @@ class SketchesFilterModalState extends State<SketchesFilterModal> {
                         ),
                         color: Colors.white,
                         child:
-                        Text("Очистить", style: titleSmallBlueStyle)),
+                        Text(FlutterI18n.translate(context, "clean"), style: titleSmallBlueStyle)),
                     RaisedButton(
                         onPressed: () async {
                           var filterString = "";
@@ -529,9 +556,9 @@ class SketchesFilterModalState extends State<SketchesFilterModal> {
                         shape: RoundedRectangleBorder(
                             borderRadius: defaultItemBorderRadius
                         ),
-                        color: defaultColorAccent,
+                        color: primaryColor,
                         child:
-                        Text("Отфильтровать", style: smallWhiteStyle))
+                        Text(FlutterI18n.translate(context, "filter"), style: smallWhiteStyle))
                   ]
               )
             ]
@@ -555,33 +582,33 @@ class MastersFilterModal extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text("Выбрано городов: ${filter.cities.length}",
+                Text("${FlutterI18n.translate(context, "selected_cities_count")} ${filter.cities.length}",
                     style: titleSmallStyle),
-                Text("выбрать", style: titleSmallBlueStyle).onClick(() {
-                  showMaterialModalBottomSheet(
+                Text(FlutterI18n.translate(context, "select"), style: titleSmallBlueStyle).onClick(() {
+                  showModalBottomSheet(
                       context: context,
                       backgroundColor: Colors.transparent,
-                      builder: (context, s) => SelectCityModalSheet());
+                      builder: (context) => SelectCityModalSheet());
                 }),
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text("Выбрано специализаций: ${filter.services.length}",
+                Text("${FlutterI18n.translate(context, "selected_services_count")} ${filter.services.length}",
                     style: titleSmallStyle),
-                Text("выбрать", style: titleSmallBlueStyle).onClick(() {
-                  showMaterialModalBottomSheet(
+                Text(FlutterI18n.translate(context, "select"), style: titleSmallBlueStyle).onClick(() {
+                  showModalBottomSheet(
                       context: context,
                       backgroundColor: Colors.transparent,
-                      builder: (context, s) => SelectServiceModalSheet());
+                      builder: (context) => SelectServiceModalSheet());
                 }),
               ],
             ).marginW(top: Global.blockY * 3, bottom: Global.blockY),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text("Только с высоким рейтингом", style: titleSmallStyle),
+                Text(FlutterI18n.translate(context, "show_only_with_high_rate"), style: titleSmallStyle),
                 Switch(
                   value: filter.isShowWithHighRate,
                   onChanged: (v) {
@@ -605,7 +632,7 @@ class MastersFilterModal extends StatelessWidget {
                     ),
                     color: Colors.white,
                     child:
-                    Text("Очистить", style: titleSmallBlueStyle)),
+                    Text(FlutterI18n.translate(context, "clean"), style: titleSmallBlueStyle)),
                 RaisedButton(
                     onPressed: () async {
                       var filterString = "";
@@ -627,9 +654,9 @@ class MastersFilterModal extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: defaultItemBorderRadius
                     ),
-                    color: defaultColorAccent,
+                    color: primaryColor,
                     child:
-                    Text("Отфильтровать", style: smallWhiteStyle))
+                    Text(FlutterI18n.translate(context, "filter"), style: smallWhiteStyle))
               ]
             )
           ],
@@ -643,7 +670,6 @@ class MastersFilterModal extends StatelessWidget {
 class PrivateSettingsModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final SettingProvider settings = Provider.of<SettingProvider>(context);
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
     return Container(
       padding: EdgeInsets.only(top: Global.blockY, bottom: Global.blockY * 3),
@@ -654,13 +680,13 @@ class PrivateSettingsModal extends StatelessWidget {
         child: ListView(
           shrinkWrap: true,
           children: [
-            Text("Настройки приватности", style: titleMediumStyle)
+            Text(FlutterI18n.translate(context, "privacy_settings"), style: titleMediumStyle)
                 .marginW(bottom: Global.blockY * 2)
                 .center(),
             Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Показывать адресс"),
+                  Text(FlutterI18n.translate(context, "show_address")),
                   Switch(
                     value: profile.isShowAddress,
                     onChanged: (v) async => UserService.get().updatePrivacy(profile, 0, !profile.isShowAddress)
@@ -670,7 +696,7 @@ class PrivateSettingsModal extends StatelessWidget {
             Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Показывать мобильный"),
+                  Text(FlutterI18n.translate(context, "show_phone")),
                   Switch(
                       value: profile.isShowPhone,
                       onChanged: (v) async => UserService.get().updatePrivacy(profile, 1, !profile.isShowPhone)
@@ -680,7 +706,7 @@ class PrivateSettingsModal extends StatelessWidget {
             Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Показывать email"),
+                  Text(FlutterI18n.translate(context, "show_email")),
                   Switch(
                     value: profile.isShowEmail,
                     onChanged: (v) async => UserService.get().updatePrivacy(profile, 2, !profile.isShowEmail)
@@ -715,21 +741,32 @@ class SelectStyleState extends State<SelectStyleModal> {
         child: FutureBuilder(
           future: StylesRepository.get().getAllStyles(profile),
           builder: (c, s) {
-            print("${s.connectionState}, ${s.hasData}, ${s.hasError}, ${s.data}");
             if(s.hasData) {
               StylesHolder.styles.clear();
               StylesHolder.styles.addAll(s.data);
             }
             if(s.hasData && s.connectionState == ConnectionState.done) {
-              return buildStylesList(s.data);
+              return Wrap(
+                children: [
+                  Text(FlutterI18n.translate(context, "select_style"), style: titleMediumStyle)
+                  .center(),
+                  buildStylesList(s.data)
+                ]
+              );
             }
             else if(StylesHolder.styles.isNotEmpty) {
-              return buildStylesList(StylesHolder.styles);
+              return Wrap(
+                  children: [
+                    Text(FlutterI18n.translate(context, "select_style"), style: titleMediumStyle)
+                    .center(),
+                    buildStylesList(StylesHolder.styles)
+                  ]
+              );
             }
             else if(StylesHolder.styles.isEmpty)
               return CircularProgressIndicator().center();
             else {
-              return Text("Нету данных").center();
+              return Text(FlutterI18n.translate(context, "no_data")).center();
             }
           },
         )
@@ -745,7 +782,7 @@ class SelectStyleState extends State<SelectStyleModal> {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("${style.name}", style: style.id == widget?.data?.style?.id ? titleMediumBlueStyle : textStyle),
+                      Text(style.name, style: style.id == widget?.data?.style?.id ? titleMediumBlueStyle : textStyle),
                     ]
                 )
             ).marginW(left: margin5, right: margin5)
@@ -779,21 +816,30 @@ class SelectPositionState extends State<SelectPositionModal> {
       child: FutureBuilder(
         future: PositionsRepository.get().getAllPositions(profile),
         builder: (c, s) {
-          print("${s.connectionState}, ${s.hasData}, ${s.hasError}, ${s.data}");
           if(s.hasData) {
             PositionsHolder.positions.clear();
             PositionsHolder.positions.addAll(s.data);
           }
           if(s.hasData && s.connectionState == ConnectionState.done) {
-            return buildPositionsList(s.data);
+            return Wrap(
+              children: [
+                Text(FlutterI18n.translate(context, "select_position"), style: titleMediumStyle).center(),
+                buildPositionsList(s.data)
+              ],
+            );
           }
           else if(PositionsHolder.positions.isNotEmpty) {
-            return buildPositionsList(PositionsHolder.positions);
+            return Wrap(
+              children: [
+                Text(FlutterI18n.translate(context, "select_position"), style: titleMediumStyle).center(),
+                buildPositionsList(PositionsHolder.positions)
+              ]
+            );
           }
           else if(PositionsHolder.positions.isEmpty)
             return CircularProgressIndicator().center();
           else {
-            return Text("Нету данных").center();
+            return Text(FlutterI18n.translate(context, "no_data")).center();
           }
         },
       )
@@ -809,7 +855,7 @@ class SelectPositionState extends State<SelectPositionModal> {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("${position.name}", style: position.id == widget?.data?.position?.id ?? false ? titleMediumBlueStyle : textStyle),
+                      Text(position.name, style: position.id == widget?.data?.position?.id ?? false ? titleMediumBlueStyle : textStyle),
                     ]
                 )
             ).marginW(left: margin5, right: margin5)
@@ -840,25 +886,30 @@ class SelectColorState extends State<SelectColorModal> {
         color: Colors.white,
         borderRadius: defaultModalBorderRadius
       ),
-      child: ListView(
-        shrinkWrap: true,
+      child: Wrap(
         children: [
-         Text("Цветная", style: _data.isColored ? titleSmallBlueStyle : textSmallStyle)
-             .marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY)
-             .onClick(() {
-           if(!_data.isColored)
-             setState(() {
-               _data.isColored = true;
-             });
-         }) ,
-         Text("Черно-белая", style: !_data.isColored ? titleSmallBlueStyle : textSmallStyle)
-             .marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY)
-             .onClick(() {
-           if(_data.isColored)
-             setState(() {
-               _data.isColored = false;
-             });
-         })
+          Text(FlutterI18n.translate(context, "select_color"), style: titleMediumStyle).center(),
+          ListView(
+              shrinkWrap: true,
+              children: [
+                Text(FlutterI18n.translate(context, "colored"), style: _data.isColored ? titleSmallBlueStyle : textSmallStyle)
+                    .marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY)
+                    .onClick(() {
+                  if(!_data.isColored)
+                    setState(() {
+                      _data.isColored = true;
+                    });
+                }) ,
+                Text(FlutterI18n.translate(context, "non_colored"), style: !_data.isColored ? titleSmallBlueStyle : textSmallStyle)
+                    .marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY)
+                    .onClick(() {
+                  if(_data.isColored)
+                    setState(() {
+                      _data.isColored = false;
+                    });
+                })
+              ]
+          )
         ]
       )
     );
@@ -897,7 +948,6 @@ class EditMasterServiceState extends State<EditMasterServiceModal> {
 
   @override
   Widget build(BuildContext context) {
-    print("service ${widget.service.toString()}");
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
     return Container(
         padding: MediaQuery.of(context).viewInsets,
@@ -912,7 +962,7 @@ class EditMasterServiceState extends State<EditMasterServiceModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Удалить", style: widget.service.wrapper == null ? TextStyle(color: Colors.transparent) : titleSmallBlueStyle)
+                  Text(FlutterI18n.translate(context, "delete"), style: widget.service.wrapper == null ? TextStyle(color: Colors.transparent) : titleSmallBlueStyle)
                   .onClick(() async {
                     if(widget.service.wrapper != null) {
                       var r = await ServicesRepository.get().deleteMasterService(profile, widget.service.wrapper);
@@ -922,20 +972,21 @@ class EditMasterServiceState extends State<EditMasterServiceModal> {
                         });
                     }
                   }),
-                  Text("Редактирование услуг", style: titleMediumStyle),
+                  Text(FlutterI18n.translate(context, "edit_services"), style: titleMediumStyle),
                   _isInProcess ?
                   CircularProgressIndicator().sizeW(Global.blockY * 3, Global.blockY * 3) :
-                  Text("Сохранить", style: titleSmallBlueStyle)
+                  Text(FlutterI18n.translate(context, "save"), style: titleSmallBlueStyle)
                       .onClick(() async {
                         setState(() {
                           _isInProcess = true;
                         });
                         if(widget.service.wrapper == null) {
-                          var wrapper = ServiceWrapper(0,
+                          var wrapper = ServiceWrapper(
+                              0,
                               widget.service.id,
-                              _priceServiceController.text == null ? null : int.parse(_priceServiceController.text),
-                              _timeServiceController.text == null ? null : int.parse(_timeServiceController.text),
-                              _commentServiceController.text);
+                              _priceServiceController.text.isEmpty ? null : int.parse(_priceServiceController.text),
+                              _timeServiceController.text.isEmpty ? null : int.parse(_timeServiceController.text),
+                              _commentServiceController?.text ?? "");
                           var r = await ServicesRepository.get().createMasterService(profile, wrapper);
                           if(r != null) {
                             setState(() {
@@ -969,7 +1020,7 @@ class EditMasterServiceState extends State<EditMasterServiceModal> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Стоимость работы, грн", style: titleSmallStyle),
+                        Text(FlutterI18n.translate(context, "work_price"), style: titleSmallStyle),
                         Container(
                             width: Global.blockX * 40,
                             child: TextField(
@@ -977,7 +1028,7 @@ class EditMasterServiceState extends State<EditMasterServiceModal> {
                                 controller: _priceServiceController,
                                 decoration: InputDecoration(
                                     border: InputBorder.none,
-                                    hintText: "Стоимость, грн",
+                                    hintText: FlutterI18n.translate(context, "price"),
                                     hintStyle: hintSmallStyle
                                 )
                             )
@@ -987,7 +1038,7 @@ class EditMasterServiceState extends State<EditMasterServiceModal> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Время работы, мин", style: titleSmallStyle),
+                        Text(FlutterI18n.translate(context, "work_time"), style: titleSmallStyle),
                         Container(
                             width: Global.blockX * 40,
                             child: TextField(
@@ -995,7 +1046,7 @@ class EditMasterServiceState extends State<EditMasterServiceModal> {
                                 controller: _timeServiceController,
                                 decoration: InputDecoration(
                                     border: InputBorder.none,
-                                    hintText: "Время работы, мин",
+                                    hintText: FlutterI18n.translate(context, "work_time"),
                                     hintStyle: hintSmallStyle
                                 )
                             )
@@ -1004,14 +1055,14 @@ class EditMasterServiceState extends State<EditMasterServiceModal> {
                     )
                   ]
               ).marginW(left: margin5, right: margin5),
-              Text("Ваш комментарий", style: titleSmallStyle).marginW(left: margin5, right: margin5),
+              Text(FlutterI18n.translate(context, "comment_for_service"), style: titleSmallStyle).marginW(left: margin5, right: margin5),
               TextField(
                 controller: _commentServiceController,
                 minLines: 1,
                 maxLines: 5,
                 decoration: InputDecoration(
                     border: InputBorder.none,
-                    hintText: "Комментарий к услуге",
+                    hintText: FlutterI18n.translate(context, "comment_for_service"),
                     hintStyle: hintSmallStyle
                 ),
               ).marginW(left: margin5, right: margin5)

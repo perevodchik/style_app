@@ -1,17 +1,15 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:async/async.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
-import 'package:style_app/holders/CitiesHolder.dart';
 import 'package:style_app/holders/SketchesHolder.dart';
-import 'package:style_app/holders/UserHolder.dart';
 import 'package:style_app/model/MasterData.dart';
 import 'package:style_app/model/Photo.dart';
 import 'package:style_app/model/Sketch.dart';
@@ -69,11 +67,11 @@ class SketchesState extends State<Sketches> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text("112", style: TextStyle(color: Colors.transparent)),
+              Text( "112", style: TextStyle(color: Colors.transparent)),
               Container(
-                child: Text("Эскизы тату", style: titleStyle),
+                child: Text(FlutterI18n.translate(context, "sketches"), style: titleStyle),
               ),
-              Icon(Icons.filter_list, color: Colors.blueAccent)
+              Icon(Icons.filter_list, color: primaryColor)
                   .onClick(() async {
                     var data = await showModalBottomSheet(
                       context: context,
@@ -183,8 +181,8 @@ Widget build(BuildContext context) {
           shape: RoundedRectangleBorder(
               borderRadius: defaultItemBorderRadius
           ),
-          color: defaultColorAccent,
-          child: Text("Записаться", style: smallWhiteStyle),
+          color: primaryColor,
+          child: Text(FlutterI18n.translate(context, "record"), style: smallWhiteStyle),
         )
       ),
       body: Column(
@@ -196,11 +194,11 @@ Widget build(BuildContext context) {
                   Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                     Navigator.pop(context);
                   }),
-                  Text("Просмотр эскиза", style: titleStyle),
+                  Text(FlutterI18n.translate(context, "view_sketch"), style: titleStyle),
                   sketch == null ? Container() :
                   (provider.profileType == 0 ?
                   Container(
-                      child: Icon(sketch.isFavorite ? Icons.favorite : Icons.favorite_border, size: 26, color: Colors.blueAccent)
+                      child: Icon(sketch.isFavorite ? Icons.favorite : Icons.favorite_border, size: 26, color: primaryColor)
                           .onClick(() async {
                         var isFavorite = await SketchesRepository.get().likeSketch(provider, sketch.isFavorite, sketch.id);
                         setState(() {
@@ -209,19 +207,19 @@ Widget build(BuildContext context) {
                       })
                   ) :
                   Container(
-                      child: Icon(Icons.delete_forever, size: 26, color: Colors.blueAccent)
+                      child: Icon(Icons.delete_forever, size: 26, color: primaryColor)
                           .onClick(() async {
                         showPlatformDialog(
                           context: context,
                           builder: (_) => PlatformAlertDialog(
-                            content: Text('Вы действительно хотите удалить эскиз?'),
+                            content: Text(FlutterI18n.translate(context, "confirm_delete_sketch")),
                             actions: <Widget>[
                               PlatformDialogAction(
-                                  child: Text("Отмена"),
+                                  child: Text(FlutterI18n.translate(context, "no")),
                                   onPressed: () => Navigator.pop(context)
                               ),
                               PlatformDialogAction(
-                                child: Text("Да"),
+                                child: Text(FlutterI18n.translate(context, "yes")),
                                 onPressed: () async {
                                   var r = await SketchesRepository.get().deleteSketch(provider, sketch);
                                   if(r) {
@@ -266,7 +264,7 @@ Widget build(BuildContext context) {
                                     child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text("Мастер", style: titleSmallStyle),
+                                          Text(FlutterI18n.translate(context, "master"), style: titleSmallStyle),
                                           Text(sketch.masterFullName, style: titleSmallBlueStyle)
                                               .onClick(() => Navigator.push(
                                               context,
@@ -277,43 +275,51 @@ Widget build(BuildContext context) {
                                         ]
                                     ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2)
                                 ),
-                                Text("Название", style: titleSmallStyle).marginW(left: margin5, right: margin5),
+                                Text(FlutterI18n.translate(context, "sketch_name"), style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data.tags}", style: textStyle).paddingAll(Global.blockY),
+                                  child: Text( "${sketch.data.tags}", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
-                                      color: defaultItemColor,
+                                      color: accentColor,
                                       borderRadius: defaultItemBorderRadius
                                   ),
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
-                                Text("Стиль", style: titleSmallStyle).marginW(left: margin5, right: margin5),
+                                Text(FlutterI18n.translate(context, "style"), style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data.style.name ?? ""}", style: textStyle).paddingAll(Global.blockY),
+                                  child: Text( "${sketch.data.style.name ?? ""}", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
-                                      color: defaultItemColor,
+                                      color: accentColor,
                                       borderRadius: defaultItemBorderRadius
                                   ),
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
-                                Text("Описание", style: titleSmallStyle).marginW(left: margin5, right: margin5),
+                                Visibility(
+                                  visible: sketch?.data?.description?.isNotEmpty,
+                                  child: ListView(
+                                    shrinkWrap: true,
+                                    children: [
+                                      Text(FlutterI18n.translate(context, "description"), style: titleSmallStyle).marginW(left: margin5, right: margin5),
+                                      Container(
+                                        child: Text( "${sketch.data.description}", style: textStyle).paddingAll(Global.blockY),
+                                        decoration: BoxDecoration(
+                                            color: accentColor,
+                                            borderRadius: defaultItemBorderRadius
+                                        ),
+                                      ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
+                                    ]
+                                  )
+                                ),
+                                Text(FlutterI18n.translate(context, "position"), style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data.description}", style: textStyle).paddingAll(Global.blockY),
+                                  child: Text( "${sketch.data?.position?.name ?? ""}", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
-                                      color: defaultItemColor,
+                                      color: accentColor,
                                       borderRadius: defaultItemBorderRadius
                                   ),
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
-                                Text("Рассположение татуировки", style: titleSmallStyle).marginW(left: margin5, right: margin5),
+                                Text(FlutterI18n.translate(context, "color"), style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data?.position?.name ?? ""}", style: textStyle).paddingAll(Global.blockY),
+                                  child: Text(sketch.data.isColored ? FlutterI18n.translate(context, "colored") : FlutterI18n.translate(context, "non_colored"), style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
-                                      color: defaultItemColor,
-                                      borderRadius: defaultItemBorderRadius
-                                  ),
-                                ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
-                                Text("Цвет татуировки", style: titleSmallStyle).marginW(left: margin5, right: margin5),
-                                Container(
-                                  child: Text(sketch.data.isColored ? "Цветная" : "Черно-белая", style: textStyle).paddingAll(Global.blockY),
-                                  decoration: BoxDecoration(
-                                      color: defaultItemColor,
+                                      color: accentColor,
                                       borderRadius: defaultItemBorderRadius
                                   ),
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
@@ -321,7 +327,7 @@ Widget build(BuildContext context) {
                                   visible: sketch.data.width > 0 || sketch.data.height > 0,
                                   child: Column(
                                     children: [
-                                      Text("Размеры татуировки", style: titleSmallStyle).marginW(left: margin5, right: margin5),
+                                      Text(FlutterI18n.translate(context, "size"), style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                       Container(
                                         child: ListView(
                                             physics: NeverScrollableScrollPhysics(),
@@ -329,33 +335,32 @@ Widget build(BuildContext context) {
                                             children: [
                                               Visibility(
                                                   visible: sketch.data.width > 0,
-                                                  child: Text("Ширина ${sketch.data.width} см")
+                                                  child: Text( "${FlutterI18n.translate(context, "width")} ${sketch.data.width} см")
                                               ),
                                               Visibility(
                                                   visible: sketch.data.height > 0,
-                                                  child: Text("Высота ${sketch.data.height} см")
+                                                  child: Text( "${FlutterI18n.translate(context, "height")} ${sketch.data.height} см")
                                               )
                                             ]
                                         ).paddingAll(Global.blockY),
                                         decoration: BoxDecoration(
-                                            color: defaultItemColor,
+                                            color: accentColor,
                                             borderRadius: defaultItemBorderRadius
                                         ),
                                       ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2)
                                     ]
                                   )
                                 ),
-                                Text("Цена", style: titleSmallStyle).marginW(left: margin5, right: margin5),
+                                Text(FlutterI18n.translate(context, "price"), style: titleSmallStyle).marginW(left: margin5, right: margin5),
                                 Container(
-                                  child: Text("${sketch.data.price}", style: textStyle).paddingAll(Global.blockY),
+                                  child: Text( "${sketch.data.price < 1 ? FlutterI18n.translate(context, "price_not_present") : "${sketch.data.price}"}", style: textStyle).paddingAll(Global.blockY),
                                   decoration: BoxDecoration(
-                                      color: defaultItemColor,
+                                      color: accentColor,
                                       borderRadius: defaultItemBorderRadius
                                   ),
                                 ).marginW(left: margin5, top: Global.blockY, right: margin5, bottom: Global.blockY * 2),
                                 CarouselSlider(
                                   options: CarouselOptions(
-                                    height: Global.blockY * 35,
                                     enableInfiniteScroll: false
                                   ),
                                   items: sketch.photos.map((i) {
@@ -368,7 +373,7 @@ Widget build(BuildContext context) {
                                               // color: Colors.grey.withOpacity(0.05),
                                               borderRadius: BorderRadius.circular(10.0),
                                             ),
-                                            child: Image.network("$url/images/${i.path}")
+                                            child: i.getWidget()
                                                 .center())
                                             .onClick(() {
                                           Navigator.push(
@@ -391,7 +396,7 @@ Widget build(BuildContext context) {
             ]
         )
         ).safe();
-}
+  }
 }
 
 class SeeMasterSketchesPage extends StatelessWidget {
@@ -412,7 +417,7 @@ class SeeMasterSketchesPage extends StatelessWidget {
               Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                 Navigator.pop(context);
               }).marginW(left: Global.blockX * 5),
-              Text("Просмотр эскизов", style: titleStyle),
+              Text(FlutterI18n.translate(context, "view_sketches"), style: titleStyle),
               Icon(Icons.file_upload, size: 20, color: Colors.white)
             ],
           ).sizeW(Global.width, Global.blockY * 10),
@@ -420,7 +425,6 @@ class SeeMasterSketchesPage extends StatelessWidget {
             child: FutureBuilder(
               future: SketchesRepository.get().getMasterSketchesPreviews(provider, userId),
               builder: (c, s) {
-                // print("[${s.connectionState}] [${s.hasData}] [${s.data}] [${s.hasError}] [${s.error}]");
                 if(s.connectionState == ConnectionState.done && s.hasData && !s.hasError) {
                   if(s.data.length > 0) {
                     return GridView.builder(
@@ -475,7 +479,7 @@ class SketchPreviewWidget extends StatelessWidget {
                             builder: (c) => UserProfile(data.id)
                         )
                     )),
-                    Text("${s.data.price} грн", style: titleSmallStyle)
+                    Text( "${s.data.price} грн", style: titleSmallStyle)
                   ],
                   mainAxisAlignment: MainAxisAlignment.spaceBetween
               ).paddingW(top: Global.blockX, bottom: Global.blockX),
@@ -490,7 +494,7 @@ class SketchPreviewWidget extends StatelessWidget {
                           width: MediaQuery.of(context).size.width,
                           margin: EdgeInsets.symmetric(horizontal: 5.0),
                           decoration: BoxDecoration(
-                            color: Colors.blueAccent,
+                            color: primaryColor,
                             borderRadius: BorderRadius.circular(10.0),
                           ),
                           child: Text('$i', style: TextStyle(fontSize: 16.0))
@@ -555,19 +559,19 @@ class MasterSketchesState extends State<MasterSketchesPage> {
           onPressed: () => Navigator.push(context, MaterialWithModalsPageRoute(
               builder: (context) => CreateSketchPage()
           )),
-          color: Colors.blueAccent,
+          color: primaryColor,
           elevation: 0,
           shape: RoundedRectangleBorder(
               borderRadius: defaultItemBorderRadius
           ),
-          child: Text("Добавить эскиз", style: smallWhiteStyle)
+          child: Text(FlutterI18n.translate(context, "add_sketch"), style: smallWhiteStyle)
       )
           .marginW(left: Global.blockY * 2, top: Global.blockX, right: Global.blockY * 2, bottom: Global.blockY),
       body: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              child: Text("Ваши эскизы", style: titleStyle),
+              child: Text(FlutterI18n.translate(context, "your_sketches"), style: titleStyle),
             ).marginW(
                 left: Global.blockX * 5,
                 top: Global.blockY * 2,
@@ -613,21 +617,24 @@ class MasterSketchPreview extends StatelessWidget {
                 left: 0, top: 0,
                 right: 0, bottom: 0,
                 child: (
-                    preview.photos != null && preview.photos.isNotEmpty && preview.photos.length > 1 ?
-                    Image.network("$url/images/${preview.photos}") :
+                    preview.photo != null ?
+                        preview.photo.getWidget() :
                 Container()).center()
               ),
-              Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                      padding: EdgeInsets.all(Global.blockX),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                          color: Colors.blue
-                      ),
-                      child: Text("${preview.price}", style: smallWhiteStyle)
-                  )
+              Visibility(
+                visible: preview.price != null && preview.price > 0,
+                child: Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                        padding: EdgeInsets.all(Global.blockX),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                            color: Colors.blue
+                        ),
+                        child: Text( "${preview.price}", style: smallWhiteStyle)
+                    )
+                )
               )
             ]
         )
@@ -655,7 +662,6 @@ class CreateSketchState extends State<CreateSketchPage> {
   TextEditingController _widthController;
   TextEditingController _heightController;
   SketchData _sketchData = SketchData();
-  List<String> media = [];
   File image;
   bool canHideModal = true;
 
@@ -690,65 +696,71 @@ class CreateSketchState extends State<CreateSketchPage> {
       appBar: null,
       backgroundColor: Colors.white,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: RaisedButton(
-        onPressed: () async {
-          _sketchData.tags = _tagsController.text;
-          _sketchData.description = _descriptionController.text;
-          _sketchData.price = _priceController.text == null || _priceController.text.isEmpty ?
-          null :int.parse(_priceController.text);
-          _sketchData.width = _widthController.text == null || _widthController.text.isEmpty ?
-          null :int.parse(_widthController.text);
-          _sketchData.height = _heightController.text == null || _heightController.text.isEmpty ?
-          null :int.parse(_heightController.text);
-          var sketch = Sketch(
-            -1,
-            provider.id,
-            "",
-            _sketchData,
-            false,
-            false,
-            []
-            );
-          canHideModal = false;
-          showModalBottomSheet(
-              context: context,
-              backgroundColor: Colors.transparent,
-              builder: (c) {
-                return WillPopScope(
-                  onWillPop: () {
-                    return Future<bool>.value(canHideModal);
-                  },
-                  child: Container(
-                      padding: EdgeInsets.only(top: Global.blockX * 5, bottom: Global.blockX * 5),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: defaultModalBorderRadius
-                      ),
-                      child: ListView(
-                          shrinkWrap: true,
-                          children: [
-                            Text("Создание эскиза...", style: titleSmallBlueStyle).center().marginW(bottom: Global.blockX * 5),
-                            LinearProgressIndicator().center()
-                          ]
-                      )
-                  )
-                );
-              }
-          );
-          var s = await SketchesRepository.get().createSketch(provider, sketch);
-          var i = await SketchesRepository.get().uploadSketchImage(provider, s.id, image);
-          s.photos.add(Photo(i, PhotoSource.NETWORK));
-          sketches.addSketchPreview(SketchPreview(sketch.id, sketch.masterId, sketch.data.price, sketch?.photos?.first?.path ?? ""));
-          canHideModal = true;
-          Navigator.pop(context);
-          Navigator.pop(context);
-        },
-        child: Text("Создать", style: smallWhiteStyle)
-            .marginW(left: margin5, right: margin5),
-        color: defaultColorAccent,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-            borderRadius: defaultItemBorderRadius
+      floatingActionButton: Visibility(
+        visible: _sketchData.position != null &&
+            _sketchData.style != null &&
+            image != null &&
+            _tagsController.text.isNotEmpty,
+        child: RaisedButton(
+            onPressed: () async {
+              _sketchData.tags = _tagsController.text;
+              _sketchData.description = _descriptionController.text;
+              _sketchData.price = _priceController.text == null || _priceController.text.isEmpty ?
+              null : int.parse(_priceController.text);
+              _sketchData.width = _widthController.text == null || _widthController.text.isEmpty ?
+              null : int.parse(_widthController.text);
+              _sketchData.height = _heightController.text == null || _heightController.text.isEmpty ?
+              null : int.parse(_heightController.text);
+              var sketch = Sketch(
+                  -1,
+                  provider.id,
+                  "",
+                  _sketchData,
+                  false,
+                  false,
+                  []
+              );
+              canHideModal = false;
+              showModalBottomSheet(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  builder: (c) {
+                    return WillPopScope(
+                        onWillPop: () {
+                          return Future<bool>.value(canHideModal);
+                        },
+                        child: Container(
+                            padding: EdgeInsets.only(top: Global.blockX * 5, bottom: Global.blockX * 5),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: defaultModalBorderRadius
+                            ),
+                            child: ListView(
+                                shrinkWrap: true,
+                                children: [
+                                  Text(FlutterI18n.translate(context, "creating_sketch"), style: titleSmallBlueStyle).center().marginW(bottom: Global.blockX * 5),
+                                  LinearProgressIndicator().center()
+                                ]
+                            )
+                        )
+                    );
+                  }
+              );
+              var s = await SketchesRepository.get().createSketch(provider, sketch);
+              var i = await SketchesRepository.get().uploadSketchImage(provider, s.id, image);
+              s.photos.add(Photo(i, PhotoSource.NETWORK));
+              sketches.addSketchPreview(SketchPreview(sketch.id, sketch.masterId, sketch.data.price, sketch.photos.first));
+              canHideModal = true;
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: Text(FlutterI18n.translate(context, "create"), style: smallWhiteStyle)
+                .marginW(left: margin5, right: margin5),
+            color: primaryColor,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+                borderRadius: defaultItemBorderRadius
+            )
         )
       ),
       body: Column(
@@ -760,14 +772,14 @@ class CreateSketchState extends State<CreateSketchPage> {
               Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                 Navigator.pop(context);
               }).marginW(left: Global.blockX * 5),
-              Text("Добавление эскиза", style: titleStyle),
+              Text(FlutterI18n.translate(context, "create_sketch"), style: titleStyle),
               Icon(Icons.file_upload, size: 20, color: Colors.white)
             ],
           ).sizeW(Global.width, Global.blockY * 10),
           Expanded(
             child: ListView(
               children: [
-                Text("Теги", style: titleMediumStyle)
+                Text(FlutterI18n.translate(context, "tags"), style: titleMediumStyle)
                     .marginW(left: margin5, right: margin5),
                 TextField(
                     controller: _tagsController,
@@ -775,15 +787,15 @@ class CreateSketchState extends State<CreateSketchPage> {
                     maxLines: 10,
                     decoration: InputDecoration(
                         hintStyle: hintSmallStyle,
-                        hintText: "Введите теги",
+                        hintText: FlutterI18n.translate(context, "input_tags"),
                         border: InputBorder.none
                     )
                 ).marginW(left: margin5, right: margin5, bottom: Global.blockY),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Стиль", style: titleMediumStyle),
-                    Text("Выбрать", style: titleSmallBlueStyle)
+                    Text(FlutterI18n.translate(context, "style_tatoo"), style: titleMediumStyle),
+                    Text(FlutterI18n.translate(context, "select"), style: titleSmallBlueStyle)
                     .onClick(() async {
                       await showModalBottomSheet(
                           context: context,
@@ -795,10 +807,10 @@ class CreateSketchState extends State<CreateSketchPage> {
                 ).marginW(left: margin5, right: margin5),
                 Container(
                     child: _sketchData.style == null ?
-                    Text("Выберите стиль", style: hintSmallStyle) :
-                    Text("${_sketchData.style.name}", style: textStyle)
+                    Text(FlutterI18n.translate(context, "select_style"), style: hintSmallStyle) :
+                    Text(_sketchData.style.name, style: textStyle)
                 ).marginW(left: margin5, top: Global.blockY * 2, right: margin5, bottom: Global.blockY * 3),
-                Text("Описание", style: titleMediumStyle)
+                Text(FlutterI18n.translate(context, "description"), style: titleMediumStyle)
                     .marginW(left: margin5, right: margin5),
                 TextField(
                     controller: _descriptionController,
@@ -806,15 +818,15 @@ class CreateSketchState extends State<CreateSketchPage> {
                     maxLines: 10,
                     decoration: InputDecoration(
                         hintStyle: hintSmallStyle,
-                        hintText: "Введите описание",
+                        hintText: FlutterI18n.translate(context, "input_description"),
                         border: InputBorder.none
                     )
                 ).marginW(left: margin5, right: margin5, bottom: Global.blockY),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Рассположение на теле", style: titleMediumStyle),
-                    Text("Выбрать", style: titleSmallBlueStyle)
+                    Text(FlutterI18n.translate(context, "position_tatoo"), style: titleMediumStyle),
+                    Text(FlutterI18n.translate(context, "select"), style: titleSmallBlueStyle)
                     .onClick(() async {
                       await showModalBottomSheet(
                         backgroundColor: Colors.transparent,
@@ -826,14 +838,14 @@ class CreateSketchState extends State<CreateSketchPage> {
                 ).marginW(left: margin5, right: margin5),
                 Container(
                   child: _sketchData.position == null ?
-                      Text("Выберите рассположение", style: hintSmallStyle) :
-                      Text("${_sketchData.position.name}", style: textStyle)
+                      Text(FlutterI18n.translate(context, "input_position"), style: hintSmallStyle) :
+                      Text(_sketchData.position.name, style: textStyle)
                 ).marginW(left: margin5, top: Global.blockY * 2, right: margin5, bottom: Global.blockY * 3),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Цвет татуировки", style: titleMediumStyle),
-                    Text("Выбрать", style: titleSmallBlueStyle).onClick(() async {
+                    Text(FlutterI18n.translate(context, "input_color"), style: titleMediumStyle),
+                    Text(FlutterI18n.translate(context, "select"), style: titleSmallBlueStyle).onClick(() async {
                       await showModalBottomSheet(
                           backgroundColor: Colors.transparent,
                           context: context,
@@ -842,8 +854,8 @@ class CreateSketchState extends State<CreateSketchPage> {
                     })
                   ]
                 ).marginW(left: margin5, right: margin5),
-                Text(_sketchData.isColored ? "Цветная" : "Черно-белая", style: textSmallStyle).marginW(left: margin5, top: Global.blockY * 2, right: margin5, bottom: Global.blockY * 3),
-                Text("Размеры", style: titleMediumStyle)
+                Text(_sketchData.isColored ? FlutterI18n.translate(context, "colored") : FlutterI18n.translate(context, "non_colored"), style: textStyle).marginW(left: margin5, top: Global.blockY * 2, right: margin5, bottom: Global.blockY * 3),
+                Text(FlutterI18n.translate(context, "size"), style: titleMediumStyle)
                     .marginW(left: margin5, right: margin5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -853,7 +865,7 @@ class CreateSketchState extends State<CreateSketchPage> {
                         controller: _widthController,
                           decoration: InputDecoration(
                               hintStyle: hintSmallStyle,
-                              hintText: "Ширина",
+                              hintText: FlutterI18n.translate(context, "width"),
                               border: InputBorder.none
                           )
                       )
@@ -863,29 +875,29 @@ class CreateSketchState extends State<CreateSketchPage> {
                           controller: _heightController,
                             decoration: InputDecoration(
                                 hintStyle: hintSmallStyle,
-                                hintText: "Высота",
+                                hintText: FlutterI18n.translate(context, "height"),
                                 border: InputBorder.none
                             )
                         )
                     )
                   ]
                 ).marginW(left: margin5, right: margin5),
-                Text("Стоимость", style: titleMediumStyle)
+                Text(FlutterI18n.translate(context, "price"), style: titleMediumStyle)
                     .marginW(left: margin5, right: margin5),
                 TextField(
                     controller: _priceController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                         hintStyle: hintSmallStyle,
-                        hintText: "Введите стоимость работы",
+                        hintText: FlutterI18n.translate(context, "input_price"),
                         border: InputBorder.none
                     )
                 ).marginW(left: margin5, right: margin5, bottom: Global.blockY),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Text("Изображение", style: titleMediumStyle),
-                      Text("Выбрать", style: titleSmallBlueStyle)
+                      Text(FlutterI18n.translate(context, "image"), style: titleMediumStyle),
+                      Text(FlutterI18n.translate(context, "select"), style: titleSmallBlueStyle)
                           .onClick(() async {
                         final picker = ImagePicker();
                         final pickedFile = await picker.getImage(source: ImageSource.gallery);
@@ -899,39 +911,14 @@ class CreateSketchState extends State<CreateSketchPage> {
                     ]
                 ).marginW(left: margin5, right: margin5),
                 Container(
-                  height: Global.blockY * 30,
                     padding: EdgeInsets.only(top: Global.blockX * 3, bottom: Global.blockX * 3),
                     decoration: BoxDecoration(
                         borderRadius: defaultItemBorderRadius
                     ),
                     child: image == null
                     // media.isEmpty
-                        ? Text("Изображение не выбрано", style: hintSmallStyle) :
+                        ? Text(FlutterI18n.translate(context, "image_not_selected"), style: hintSmallStyle) :
                     Image.file(image)
-                    // CarouselSlider(
-                    //   options: CarouselOptions(
-                    //     enableInfiniteScroll: false,
-                    //   ),
-                    //   items: media.map((i) {
-                    //     return Builder(
-                    //       builder: (BuildContext context) {
-                    //         return Container(
-                    //           width: MediaQuery.of(context).size.width,
-                    //           margin: EdgeInsets.symmetric(horizontal: 5.0),
-                    //           decoration: BoxDecoration(
-                    //             borderRadius: BorderRadius.circular(10.0),
-                    //           ),
-                    //           child: Text('$i', style: TextStyle(fontSize: 16.0)).center()
-                    //           // Image.file(i, fit: BoxFit.contain),
-                    //         ).onClick(() {
-                    //           Navigator.push(context, MaterialWithModalsPageRoute(
-                    //               builder: (context) => ImagePage(media)
-                    //           ));
-                    //         });
-                    //       },
-                    //     );
-                    //   }).toList(),
-                    // )
                         .marginW(top: Global.blockX, bottom: Global.blockX)
                 ).marginW(left: margin5, right: margin5, bottom: Global.blockY * 10)
               ]

@@ -99,10 +99,11 @@ class ConversionsRepository {
     return data;
   }
 
-  Future<Message> sendMessage(ProfileProvider profile, Message message, bool hasMedia) async {
+  Future<Message> sendMessage(ProfileProvider profile, Message message, int receiverId, bool hasMedia) async {
     var body = jsonEncode({
       "id": -1,
       "conversionId": message.conversionId,
+      "receiverId": message.conversionId,
       "senderId": message.senderId,
       "message": message.text,
       "hasMedia": hasMedia,

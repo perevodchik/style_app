@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/model/Conversion.dart';
@@ -174,7 +175,6 @@ class CorrespondenceState extends State<Correspondence> {
                             }
                           }
                           if(hasMore && i >= widget.conversion.messages.length - 1 && !isLoading) {
-                            print("loadList 1");
                             loadList(profile, page++, itemsPerPage).then((value) {
                               setState(() {
                                 isLoading = false;
@@ -212,7 +212,7 @@ class CorrespondenceState extends State<Correspondence> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Icon(Icons.camera_enhance, color: Colors.blueAccent)
+                      Icon(Icons.camera_enhance, color: primaryColor)
                           .marginW(left: Global.blockY, right: Global.blockY * 2)
                           .onClick(() async {
                         final picker = ImagePicker();
@@ -228,7 +228,7 @@ class CorrespondenceState extends State<Correspondence> {
                               DateTime.now().toUtc(),
                               hasMedia: true
                           );
-                          var r = await ConversionsRepository.get().sendMessage(profile, message, true);
+                          var r = await ConversionsRepository.get().sendMessage(profile, message, widget.conversion.userShort.id, true);
                           if(r.id != -1) {
                             setState(() {
                               widget.conversion.messages.insert(0, message);
@@ -248,7 +248,7 @@ class CorrespondenceState extends State<Correspondence> {
                           maxLengthEnforced: true,
                         ),
                       ),
-                      Icon(Icons.send, color: Colors.blueAccent)
+                      Icon(Icons.send, color: primaryColor)
                           .marginW(right: Global.blockY)
                           .onClick(() async {
                         if(_messageController.text == null || _messageController.text.isEmpty)
@@ -260,7 +260,7 @@ class CorrespondenceState extends State<Correspondence> {
                             _messageController.text,
                             DateTime.now().toUtc()
                         );
-                        var r = await ConversionsRepository.get().sendMessage(profile, message, false);
+                        var r = await ConversionsRepository.get().sendMessage(profile, message, widget.conversion.userShort.id, false);
                         if(r.id != -1) {
                           setState(() {
                             widget.conversion.messages.insert(0, message);
@@ -272,9 +272,7 @@ class CorrespondenceState extends State<Correspondence> {
                       })
                     ],
                   ).paddingAll(Global.blockY) :
-                  Text(profile.profileType == 0 ?
-                  "Для отправки сообщений Вы должны быть записаны к мастеру" :
-                  "Для отправки сообщений пользователь должен быть записан к Вам", style: titleSmallStyle).marginAll(Global.blockY)
+                  Text(FlutterI18n.translate(context, "record_to_user_for_send_message"), style: titleSmallStyle).marginAll(Global.blockY)
                   )
             )
           ],
@@ -316,7 +314,7 @@ class MessageItem extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                   color: _message.hasMedia ? Colors.transparent : (
-                      _message.senderId != user.id  ? defaultItemColor : Colors.blueAccent
+                      _message.senderId != user.id  ? accentColor : primaryColor
                   ),
                   borderRadius: BorderRadius.circular(10.0)
               ),

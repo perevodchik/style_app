@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:style_app/model/MasterData.dart';
@@ -34,7 +35,7 @@ class AuthScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("title", style: titleBigBlueStyle)
+                  Text(FlutterI18n.translate(context, "title"), style: titleBigBlueStyle)
                 ]
               ).marginW(top: Global.blockY * 5, bottom: Global.blockY * 20),
               RaisedButton(
@@ -47,8 +48,8 @@ class AuthScreen extends StatelessWidget {
                         builder: (context) => AuthModal()
                     );
                   },
-                  child: Text("Я клиент!", style: smallWhiteStyle),
-                  color: defaultColorAccent,
+                  child: Text(FlutterI18n.translate(context, "auth_client"), style: smallWhiteStyle),
+                  color: primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: defaultItemBorderRadius,
                   )
@@ -67,8 +68,8 @@ class AuthScreen extends StatelessWidget {
                         builder: (context) => AuthModal()
                     );
                   },
-                  child: Text("Я мастер!", style: smallWhiteStyle),
-                  color: defaultColorAccent,
+                  child: Text(FlutterI18n.translate(context, "auth_master"), style: smallWhiteStyle),
+                  color: primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: defaultItemBorderRadius,
                   )
@@ -114,7 +115,7 @@ class AuthModalState extends State<AuthModal> {
       child: ListView(
         shrinkWrap: true,
         children: [
-          Text("Авторизация", textAlign: TextAlign.center, style: titleMediumBlueStyle).marginAll(Global.blockY * 2),
+          Text(FlutterI18n.translate(context, "authorization"), textAlign: TextAlign.center, style: titleMediumBlueStyle).marginAll(Global.blockY * 2),
           TextField(
               controller: _phoneController,
               decoration: InputDecoration(
@@ -130,12 +131,12 @@ class AuthModalState extends State<AuthModal> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Такого пользователя не существует!", style: errorStyle)
+                  Text(FlutterI18n.translate(context, "user_not_exist"), style: errorStyle)
                 ]
               )
             )
           ),
-          Text("Создать аккаунт", textAlign: TextAlign.center, style: titleSmallBlueStyle)
+          Text(FlutterI18n.translate(context, "create_account"), textAlign: TextAlign.center, style: titleSmallBlueStyle)
           .onClick(() {
             Navigator.pop(context);
             Navigator.push(
@@ -176,8 +177,8 @@ class AuthModalState extends State<AuthModal> {
               shape: RoundedRectangleBorder(
                 borderRadius: defaultItemBorderRadius,
               ),
-              color: defaultColorAccent,
-              child: Text("Вход", style: smallWhiteStyle),
+              color: primaryColor,
+              child: Text(FlutterI18n.translate(context, "log_in"), style: smallWhiteStyle),
             ).marginW(left: margin5 * 5, right: margin5 * 5)
           )
         ]
@@ -222,7 +223,7 @@ class SmsCodeModalState extends State<SmsCodeModal> {
         child: ListView(
             shrinkWrap: true,
             children: [
-              Text("Введите код из смс", textAlign: TextAlign.center, style: titleMediumBlueStyle).marginAll(Global.blockY * 2),
+              Text(FlutterI18n.translate(context, "input_code"), textAlign: TextAlign.center, style: titleMediumBlueStyle).marginAll(Global.blockY * 2),
               TextField(
                   controller: _smsCodeController,
                   keyboardType: TextInputType.number,
@@ -239,7 +240,7 @@ class SmsCodeModalState extends State<SmsCodeModal> {
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Не верный код", style: errorStyle)
+                            Text(FlutterI18n.translate(context, "incorrect_code"), style: errorStyle)
                           ]
                       )
                   )
@@ -262,7 +263,8 @@ class SmsCodeModalState extends State<SmsCodeModal> {
                       else {
                         var user = await UserService.get().auth(profile.phone,
                             _smsCodeController.text, profile.profileType);
-                        if(user.id != -1) {
+                        print(user.toString());
+                        if(user != null) {
                           var s = await SharedPreferences.getInstance();
                           TempData.user = user;
                           profile.set(user);
@@ -286,8 +288,8 @@ class SmsCodeModalState extends State<SmsCodeModal> {
                     shape: RoundedRectangleBorder(
                       borderRadius: defaultItemBorderRadius,
                     ),
-                    color: defaultColorAccent,
-                    child: Text("Вход", style: smallWhiteStyle),
+                    color: primaryColor,
+                    child: Text(FlutterI18n.translate(context, "log_in"), style: smallWhiteStyle),
                   ).marginW(left: margin5 * 5, right: margin5 * 5)
               )
             ]
@@ -405,11 +407,11 @@ class RegisterPageState extends State<RegisterPage> {
               }
             }
           },
-          color: defaultColorAccent,
+          color: primaryColor,
           shape: RoundedRectangleBorder(
             borderRadius: defaultItemBorderRadius,
           ),
-          child: Text("Отправить", style: smallWhiteStyle),
+          child: Text(FlutterI18n.translate(context, "send"), style: smallWhiteStyle),
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,22 +422,22 @@ class RegisterPageState extends State<RegisterPage> {
                 Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                   Navigator.pop(context);
                 }).marginW(left: Global.blockX * 5),
-                Text("Регистрация", style: titleStyle),
+                Text(FlutterI18n.translate(context, "register"), style: titleStyle),
                 Icon(Icons.file_upload, size: 20, color: Colors.white)
               ],
             ).sizeW(Global.width, Global.blockY * 10),
-            Text("Ваш номер телефона", style: titleMediumStyle)
+            Text(FlutterI18n.translate(context, "your_phone"), style: titleMediumStyle)
                 .marginW(left: margin5, right: margin5),
             Container(
               padding: EdgeInsets.only(left: Global.blockX * 2),
               decoration: BoxDecoration(
                 borderRadius: defaultItemBorderRadius,
-                color: defaultItemColor
+                color: accentColor
               ),
               child: TextField(
                   controller: _phoneController,
                   decoration: InputDecoration(
-                      hintText: "Номер телефона",
+                      hintText: FlutterI18n.translate(context, "phone_number"),
                       hintStyle: hintSmallStyle,
                       border: InputBorder.none
                   )
@@ -447,7 +449,7 @@ class RegisterPageState extends State<RegisterPage> {
               children: [
                 Visibility(
                     visible: isEmptyFields && _phoneController.text.isEmpty,
-                    child: Text("Поле должно быть заполнено", style: errorStyle)
+                    child: Text(FlutterI18n.translate(context, "field_need_be_fill"), style: errorStyle)
                 )
               ]
             )
@@ -457,23 +459,23 @@ class RegisterPageState extends State<RegisterPage> {
                 children: [
                   Visibility(
                       visible: isError,
-                      child: Text("Пользователь уже существует!", style: errorStyle)
+                      child: Text(FlutterI18n.translate(context, "user_exist"), style: errorStyle)
                   )
                 ]
             )
                 .marginW(left: margin5, right: margin5),
-            Text("Ваше имя", style: titleMediumStyle)
+            Text(FlutterI18n.translate(context, "your_name"), style: titleMediumStyle)
                 .marginW(left: margin5, top: Global.blockY * 2, right: margin5),
             Container(
               padding: EdgeInsets.only(left: Global.blockX * 2),
               decoration: BoxDecoration(
                   borderRadius: defaultItemBorderRadius,
-                  color: defaultItemColor
+                  color: accentColor
               ),
               child: TextField(
                   controller: _nameController,
                   decoration: InputDecoration(
-                      hintText: "Имя",
+                      hintText: FlutterI18n.translate(context, "name"),
                       hintStyle: hintSmallStyle,
                       border: InputBorder.none
                   )
@@ -485,23 +487,23 @@ class RegisterPageState extends State<RegisterPage> {
                 children: [
                   Visibility(
                       visible: isEmptyFields && _nameController.text.isEmpty,
-                      child: Text("Поле должно быть заполнено", style: errorStyle)
+                      child: Text(FlutterI18n.translate(context, "field_need_be_fill"), style: errorStyle)
                   )
                 ]
             )
                 .marginW(left: margin5, right: margin5),
-            Text("Ваша фамилия", style: titleMediumStyle)
+            Text(FlutterI18n.translate(context, "your_surname"), style: titleMediumStyle)
                 .marginW(left: margin5, top: Global.blockY * 2, right: margin5),
             Container(
                 padding: EdgeInsets.only(left: Global.blockX * 2),
                 decoration: BoxDecoration(
                     borderRadius: defaultItemBorderRadius,
-                    color: defaultItemColor
+                    color: accentColor
                 ),
               child: TextField(
                   controller: _surnameController,
                   decoration: InputDecoration(
-                      hintText: "Фамилия",
+                      hintText: FlutterI18n.translate(context, "surname"),
                       hintStyle: hintSmallStyle,
                       border: InputBorder.none
                   )
@@ -513,15 +515,15 @@ class RegisterPageState extends State<RegisterPage> {
                 children: [
                   Visibility(
                       visible: isEmptyFields && _surnameController.text.isEmpty,
-                      child: Text("Поле должно быть заполнено", style: errorStyle)
+                      child: Text(FlutterI18n.translate(context, "field_need_be_fill"), style: errorStyle)
                   )
                 ]
             ).marginW(left: margin5, right: margin5),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Город", style: titleMediumStyle),
-                Text("выбрать", style: titleMediumBlueStyle)
+                Text(FlutterI18n.translate(context, "city"), style: titleMediumStyle),
+                Text(FlutterI18n.translate(context, "select"), style: titleMediumBlueStyle)
                     .onClick(() async {
                   await CitiesService.get().getCities(cities);
                   showModalBottomSheet(
@@ -536,13 +538,13 @@ class RegisterPageState extends State<RegisterPage> {
                 padding: EdgeInsets.only(left: Global.blockX * 2, top: Global.blockY * 2, bottom: Global.blockY * 2),
                 decoration: BoxDecoration(
                     borderRadius: defaultItemBorderRadius,
-                    color: defaultItemColor
+                    color: accentColor
                 ),
                 child:Row(
                   mainAxisSize: MainAxisSize.max,
                     children: [
                       profile.city == null ?
-                      Text("Выберите город")
+                      Text(FlutterI18n.translate(context, "select_city"))
                           : Text(cities.byId(profile.city)?.name ?? "Город")
                     ]
                 )
@@ -552,7 +554,7 @@ class RegisterPageState extends State<RegisterPage> {
                 children: [
                   Visibility(
                       visible: isEmptyFields && _surnameController.text.isEmpty,
-                      child: Text("Выберите город", style: errorStyle)
+                      child: Text(FlutterI18n.translate(context, "select_city"), style: errorStyle)
                   )
                 ]
             )

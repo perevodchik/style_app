@@ -1,12 +1,16 @@
 import 'package:async/async.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:style_app/model/NotifySettings.dart';
 import 'package:style_app/providers/CitiesProvider.dart';
 import 'package:style_app/providers/ProfileProvider.dart';
 import 'package:style_app/providers/ServicesProvider.dart';
+import 'package:style_app/providers/SettingProvider.dart';
 import 'package:style_app/service/CitiesService.dart';
 import 'package:style_app/service/ProfileService.dart';
 import 'package:style_app/service/ServicesRepository.dart';
@@ -34,9 +38,31 @@ class PreloaderScreenState extends State<PreloaderScreen> {
     final ProfileProvider profile = Provider.of<ProfileProvider>(context);
     final CitiesProvider cities = Provider.of<CitiesProvider>(context);
     final ServicesProvider services = Provider.of<ServicesProvider>(context);
+    final SettingProvider settings = Provider.of<SettingProvider>(context);
 
     memoizer.runOnce(() async {
       var s = await SharedPreferences.getInstance();
+      var language = s.getInt("locale");
+      if(language == null) {
+        language = 2;
+        s.setInt("locale", 2);
+      }
+      var lang = Languages.byId(language);
+      print("$lang");
+      var res = await FlutterI18n.refresh(context, lang.locale);
+      print("res $res");
+      settings.language = lang;
+
+      var c = await Connectivity().checkConnectivity();
+      if(c.index == ConnectivityResult.none.index) {
+        Navigator.pushReplacement(
+            context,
+            MaterialWithModalsPageRoute(
+                builder: (c) => AuthScreen()
+            )
+        );
+        return;
+      }
       await CitiesService.get().getCities(cities);
       await ServicesRepository.get().getAllCategoriesAndServices(services);
       if(s.containsKey("token") && s.containsKey("type")) {
@@ -71,11 +97,10 @@ class PreloaderScreenState extends State<PreloaderScreen> {
       body: Column(
         children: [
           Expanded(
-              child: Icon(Icons.format_paint, color: defaultColorAccent, size: 72).center()
+              child: Icon(Icons.format_paint, color: primaryColor, size: 72).center()
           )
         ]
       ).safe(),
     );
   }
-
 }

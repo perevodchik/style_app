@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
+import 'package:style_app/model/Language.dart';
+import 'package:style_app/model/NotifySettings.dart';
 
 class SettingProvider extends ChangeNotifier {
-  int _language = 0;
+  Language _language = Languages.languages.first;
   bool _newOrder = true;
   bool _cancelOrder = true;
   bool _changeOrder = true;
@@ -9,7 +11,7 @@ class SettingProvider extends ChangeNotifier {
   bool _isShowEmail = true;
   bool _isShowCity = true;
 
-  int get language => _language;
+  Language get language => _language;
   bool get newOrder => _newOrder;
   bool get cancelOrder => _cancelOrder;
   bool get changeOrder => _changeOrder;
@@ -17,7 +19,7 @@ class SettingProvider extends ChangeNotifier {
   bool get isShowEmail => _isShowEmail;
   bool get isShowCity => _isShowCity;
 
-  set language(int val) {
+  set language(Language val) {
     _language = val;
     notifyListeners();
   }

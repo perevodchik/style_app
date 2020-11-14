@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/holders/OrdersHolder.dart';
@@ -58,9 +59,9 @@ class FindOrdersState extends State<FindOrdersScreen> {
           children: [
             Text("123", style: TextStyle(color: Colors.white)),
             Container(
-              child: Text("Поиск заказов", style: titleStyle),
+              child: Text(FlutterI18n.translate(context, "find_orders"), style: titleStyle),
             ).center(),
-            Icon(Icons.filter_list, color: defaultColorAccent).onClick(() async {
+            Icon(Icons.filter_list, color: primaryColor).onClick(() async {
               var r = await showModalBottomSheet(
                   context: context,
                   backgroundColor: Colors.transparent,
@@ -155,7 +156,7 @@ class AvailableOrderPreview extends StatelessWidget {
             "" :
             "Стоимость ${_order.price} грн.", style: hintSmallPlusStyle).marginW(top: Global.blockX)
           ),
-          Text("Опубликован в ${_order.created.getFullDate()}", style: hintSmallPlusStyle).marginW(top: Global.blockX)
+          Text("${FlutterI18n.translate(context, "release_at")} ${_order.created.getFullDate()}", style: hintSmallPlusStyle).marginW(top: Global.blockX)
         ],
       ),
     ).onClick(() => Navigator.push(

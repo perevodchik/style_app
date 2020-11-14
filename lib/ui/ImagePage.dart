@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:style_app/model/Photo.dart';
 import 'package:style_app/utils/Global.dart';
 import 'package:style_app/utils/Style.dart';
@@ -26,7 +27,7 @@ class ImagePage extends StatelessWidget {
               Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                 Navigator.pop(context);
               }).marginW(left: Global.blockX * 5),
-              Text("Просмотр фотографий", style: titleStyle),
+              Text(FlutterI18n.translate(context, "viewing_photos"), style: titleStyle),
               Icon(Icons.file_upload, size: 20, color: Colors.white)
             ],
           ).sizeW(Global.width, Global.blockY * 10),
@@ -77,7 +78,7 @@ class ImageFilePage extends StatelessWidget {
               Icon(Icons.arrow_back_ios, size: 20).onClick(() {
                 Navigator.pop(context);
               }).marginW(left: Global.blockX * 5),
-              Text("Просмотр фотографий", style: titleStyle),
+              Text(FlutterI18n.translate(context, "viewing_photos"), style: titleStyle),
               Icon(Icons.file_upload, size: 20, color: Colors.white)
             ],
           ).sizeW(Global.width, Global.blockY * 10),

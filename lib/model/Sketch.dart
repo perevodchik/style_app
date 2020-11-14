@@ -47,9 +47,9 @@ class SketchPreview {
   int id;
   int masterId;
   int price;
-  String photos;
+  Photo photo;
 
-  SketchPreview(this.id, this.masterId, this.price, this.photos);
+  SketchPreview(this.id, this.masterId, this.price, this.photo);
 
   factory SketchPreview.fromJson(Map<String, dynamic> json) {
     print("SketchPreview json [ $json ]");
@@ -57,13 +57,13 @@ class SketchPreview {
         json["id"],
         json["masterId"],
         json["price"],
-        json["photos"] ?? null
+        json["photos"] != null ? Photo(json["photos"], PhotoSource.NETWORK) : null
     );
   }
 
   @override
   String toString() {
-    return 'SketchPReview{id: $id, masterId: $masterId, price: $price, photos: $photos}';
+    return 'SketchPReview{id: $id, masterId: $masterId, price: $price, photos: $photo}';
   }
 }
 

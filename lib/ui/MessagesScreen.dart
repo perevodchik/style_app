@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:provider/provider.dart';
 import 'package:style_app/holders/ConversionsHolder.dart';
 import 'package:style_app/holders/NotificationsHolder.dart';
@@ -38,7 +39,7 @@ class MessagesState extends State<Messages> {
           child: Column(
             children: <Widget>[
               Container(
-                child: Text("Сообщения", style: titleStyle),
+                child: Text(FlutterI18n.translate(context, "messages"), style: titleStyle),
               ).marginW(top: Global.blockY * 2, bottom: Global.blockY * 2),
               Row(
                 children: <Widget>[
@@ -50,9 +51,12 @@ class MessagesState extends State<Messages> {
                             if (!_isFirst) _isFirst = true;
                           });
                         },
-                        child: Text("Диалоги"),
+                        highlightElevation: 0,
+                        highlightColor: Colors.transparent,
+                        elevation: 0,
+                        child: Text(FlutterI18n.translate(context, "dialogs")),
                         textColor: _isFirst ? Colors.white : Colors.black,
-                        color: _isFirst ? Colors.blueAccent : Colors.white,
+                        color: _isFirst ? primaryColor : Colors.white,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(50),
@@ -66,9 +70,12 @@ class MessagesState extends State<Messages> {
                             if (_isFirst) _isFirst = false;
                           });
                         },
-                        child: Text("Уведомления"),
+                        highlightElevation: 0,
+                        highlightColor: Colors.transparent,
+                        elevation: 0,
+                        child: Text(FlutterI18n.translate(context, "notifications")),
                         textColor: !_isFirst ? Colors.white : Colors.black,
-                        color: !_isFirst ? Colors.blueAccent : Colors.white,
+                        color: !_isFirst ? primaryColor : Colors.white,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                                 topRight: Radius.circular(50),
@@ -155,7 +162,6 @@ class InboxState extends State<Inbox> {
                             });
                           }
                         }
-                        print("open conversion ${conversion.toString()}");
                         var result = await Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -187,7 +193,7 @@ class ConversionPreview extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-              color: conversion.isRead ? Colors.grey.withOpacity(0.3) : Colors.blueAccent.withOpacity(0.3),
+              color: conversion.isRead ? Colors.grey.withOpacity(0.3) : primaryColor.withOpacity(0.3),
               spreadRadius: 2,
               blurRadius: 15,
               offset: Offset(0, 1))
@@ -237,12 +243,11 @@ class NotificationsScreenState extends State<NotificationsScreen> {
     return FutureBuilder(
       future: NotificationRepository.get().getNotifications(profile),
       builder: (c, s) {
-       print("${s.connectionState} ${s.hasData} ${s.hasError} ${s.data} ${s.error}");
        if(s.connectionState == ConnectionState.done && s.hasData && !s.hasError) {
          NotificationsHolder.notifications.clear();
          NotificationsHolder.notifications.addAll(s.data);
          if(NotificationsHolder.notifications.isEmpty) {
-           return Text("У Вас пока еще нету уведомлений",
+           return Text(FlutterI18n.translate(context, "no_notifications"),
                style: titleSmallStyle).center();
          } else
          return ListView.builder(
@@ -294,16 +299,15 @@ Widget build(BuildContext context) {
           padding: EdgeInsets.all(Global.blockX),
           decoration: BoxDecoration(
               color: !_notification.isDirty ?
-              defaultColorAccent.withOpacity(0.02) :
-              defaultItemColor,
+              primaryColor.withOpacity(0.02) :
+              accentColor,
               borderRadius: defaultItemBorderRadius),
           child: RichText(
               textDirection: TextDirection.ltr,
               text: TextSpan(
                   children: getText(context),
                   style: TextStyle(fontSize: 10)))
-      ),
-      // Text("${_notification.createdAt.getDate()}", style: errorStyle)
+      )
     ]
   ).marginW(
       left: Global.blockX * 5,
@@ -316,7 +320,7 @@ List<TextSpan> getText(context) {
   List<TextSpan> widgets = [];
   switch(_notification.notificationType) {
     case 0:
-      widgets.add(TextSpan(text: "Пользователь ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: "${FlutterI18n.translate(context, "user")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.secondUser.name} ${_notification.secondUser.surname}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -325,10 +329,10 @@ List<TextSpan> getText(context) {
                   builder: (c) => UserProfile(_notification.secondUser.id)
               )
           )));
-      widgets.add(TextSpan(text: " добавил о Вас отзыв. ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: " ${FlutterI18n.translate(context, "add_comment_about_u")}. ", style: hintSmallStyle));
       break;
     case 1:
-      widgets.add(TextSpan(text: "Пользователь ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: "${FlutterI18n.translate(context, "user")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.secondUser.name} ${_notification.secondUser.surname}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -337,7 +341,7 @@ List<TextSpan> getText(context) {
                   builder: (c) => UserProfile(_notification.secondUser.id)
               )
           )));
-      widgets.add(TextSpan(text: " предложил Вам стать исполнителем в заказе ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: " ${FlutterI18n.translate(context, "request_to_be_master")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.order.name}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -349,7 +353,7 @@ List<TextSpan> getText(context) {
       widgets.add(TextSpan(text: ".", style: hintSmallStyle));
       break;
     case 2:
-      widgets.add(TextSpan(text: "Заказ ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: "${FlutterI18n.translate(context, "order")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.order.name}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -358,10 +362,10 @@ List<TextSpan> getText(context) {
                   builder: (c) => OrderPage(_notification.order.id)
               )
           )));
-      widgets.add(TextSpan(text: " был отменен клиентом. ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: " ${FlutterI18n.translate(context, "canceled_by_client")}. ", style: hintSmallStyle));
       break;
     case 3:
-      widgets.add(TextSpan(text: "Заказ ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: "${FlutterI18n.translate(context, "order")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.order.name}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -370,10 +374,10 @@ List<TextSpan> getText(context) {
                   builder: (c) => OrderPage(_notification.order.id)
               )
           )));
-      widgets.add(TextSpan(text: " был отменен мастером. ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: " ${FlutterI18n.translate(context, "canceled_by_master")}. ", style: hintSmallStyle));
       break;
     case 4:
-      widgets.add(TextSpan(text: "Пользователь ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: "${FlutterI18n.translate(context, "user")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.secondUser.name} ${_notification.secondUser.surname}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -382,7 +386,7 @@ List<TextSpan> getText(context) {
                   builder: (c) => UserProfile(_notification.secondUser.id)
               )
           )));
-      widgets.add(TextSpan(text: " завершил заказ ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: " ${FlutterI18n.translate(context, "order_is_finish")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.order.name}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -394,7 +398,7 @@ List<TextSpan> getText(context) {
       widgets.add(TextSpan(text: ". ", style: hintSmallStyle));
       break;
     case 6:
-      widgets.add(TextSpan(text: "Мастер ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: "${FlutterI18n.translate(context, "master")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.secondUser.name} ${_notification.secondUser.surname}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -403,7 +407,7 @@ List<TextSpan> getText(context) {
                   builder: (c) => UserProfile(_notification.secondUser.id)
               )
           )));
-      widgets.add(TextSpan(text: " принял заказ ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: " ${FlutterI18n.translate(context, "accept_order")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.order.name}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -415,7 +419,7 @@ List<TextSpan> getText(context) {
       widgets.add(TextSpan(text: ". ", style: hintSmallStyle));
       break;
     case 7:
-      widgets.add(TextSpan(text: "В заказе ", style: hintSmallStyle));
+      widgets.add(TextSpan(text: "${FlutterI18n.translate(context, "in_order")} ", style: hintSmallStyle));
       widgets.add(TextSpan(text: "${_notification.order.name}",
           style: titleSmallBlueStyle,
           recognizer: new TapGestureRecognizer()..onTap = () => Navigator.push(
@@ -425,7 +429,7 @@ List<TextSpan> getText(context) {
               )
           )
       ));
-      widgets.add(TextSpan(text: " новое предложение.", style: hintSmallStyle));
+      widgets.add(TextSpan(text: " ${FlutterI18n.translate(context, "new_sentence")}.", style: hintSmallStyle));
       break;
     default:
       widgets.add(TextSpan(text: _notification.toString(), style: hintSmallStyle));
